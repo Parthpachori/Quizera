@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Features</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="upload-styles.css">
+    <link rel="stylesheet" href="animated-bg.css">
+    <style>
+        /* Override scrolling behavior */
+        html, body {
+            height: auto !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Feature page specific styles */
+        .feature-container {
+            max-width: 1200px;
+            margin: 120px auto 60px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .feature-container h1 {
+            font-family: 'Azonix', sans-serif;
+            text-align: center;
+            margin-bottom: 40px;
+            color: #1a2b3c;
+            font-size: 36px;
+            letter-spacing: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-content h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #1a2b3c;
+        }
+
+        .feature-content p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* Dark theme styles */
+        body.dark-theme .feature-container {
+            background-color: rgba(20, 20, 30, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+        }
+
+        body.dark-theme .feature-container h1 {
+            color: #fff;
+        }
+
+        body.dark-theme .feature-card {
+            background: rgba(30, 30, 40, 0.5);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .feature-content h2 {
+            color: #fff;
+        }
+
+        body.dark-theme .feature-content p {
+            color: #ccc;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-container {
+                margin-top: 100px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div id="animated-background" class="animated-background" style="pointer-events: none;"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html" class="active">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html">Upload</a></li>
+            </ul>
+        </nav>
+        <div class="theme-toggle">
+            <span class="theme-toggle-text">Dark Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle-checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="feature-container" style="position: relative; z-index: 5;">
+        <h1>QUIZERA Features</h1>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <div class="feature-content">
+                    <h2>PDF to Quiz Conversion</h2>
+                    <p>Upload your study materials and instantly generate comprehensive quizzes. Our advanced AI analyzes your documents to create relevant questions that test your understanding.</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <div class="feature-content">
+                    <h2>Interactive Learning Games</h2>
+                    <p>Transform your study sessions into engaging games. Our platform offers various game modes to make learning fun and effective, helping you retain information longer.</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-content">
+                    <h2>Performance Analytics</h2>
+                    <p>Track your progress with detailed analytics. Identify your strengths and weaknesses to focus your study efforts where they're needed most.</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-content">
+                    <h2>AI-Powered Learning</h2>
+                    <p>Our advanced AI adapts to your learning style and pace. The more you use QUIZERA, the better it becomes at helping you learn effectively.</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <div class="feature-content">
+                    <h2>Cross-Platform Access</h2>
+                    <p>Study anywhere, anytime. QUIZERA works seamlessly across desktop, tablet, and mobile devices, ensuring your learning never stops.</p>
+                </div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-content">
+                    <h2>Spaced Repetition</h2>
+                    <p>Our system uses proven spaced repetition techniques to help you review material at optimal intervals, maximizing long-term retention.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2023 QUIZERA. All rights reserved.</p>
+            <div class="social-links">
+                <a href="#" class="social-link">Twitter</a>
+                <a href="#" class="social-link">Facebook</a>
+                <a href="#" class="social-link">Instagram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="animated-bg.js"></script>
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle-checkbox');
+
+        // Check if user has a theme preference stored
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html>

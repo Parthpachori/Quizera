@@ -1,0 +1,23 @@
+/* 3D Robot Styles */
+.robot-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+.robot-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Dark theme adjustments */
+body.dark-theme .robot-container canvas {
+    filter: brightness(0.8) contrast(1.2);
+}

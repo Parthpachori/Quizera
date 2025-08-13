@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Play Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Full-screen iframe background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: auto; /* Ensure the background receives pointer events */
+        }
+
+        .background-container iframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            pointer-events: auto; /* Ensure the iframe receives pointer events */
+        }
+
+        /* Quiz container */
+        .quiz-container {
+            max-width: 800px;
+            margin: 120px auto 40px;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            pointer-events: auto;
+        }
+
+        /* Make the body pass through pointer events to the background */
+        body {
+            pointer-events: none;
+        }
+
+        /* But enable pointer events for all interactive elements */
+        header, .quiz-container, .timer-container, button, input, .answer-option {
+            pointer-events: auto;
+        }
+
+        /* Quiz header */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-title {
+            font-family: 'Azonix', sans-serif;
+            font-size: 24px;
+            color: #1a2b3c;
+            margin: 0;
+        }
+
+        .quiz-info {
+            display: flex;
+            gap: 20px;
+        }
+
+        .quiz-info-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Question section */
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #1a2b3c;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Answer options */
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .answer-option {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 2px solid rgba(26, 43, 60, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .answer-option:hover {
+            background-color: rgba(26, 43, 60, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .answer-option.selected {
+            border-color: #1a2b3c;
+            background-color: rgba(26, 43, 60, 0.1);
+        }
+
+        .answer-option.correct {
+            border-color: #2ecc71;
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+
+        .answer-option.incorrect {
+            border-color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        /* Text input for fill-in-the-blank and short answer */
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(26, 43, 60, 0.1);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #1a2b3c;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Navigation buttons */
+        .quiz-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .prev-button {
+            background-color: rgba(255, 255, 255, 0.7);
+            color: #1a2b3c;
+            border: 1px solid rgba(26, 43, 60, 0.2);
+        }
+
+        .prev-button:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateX(-5px);
+        }
+
+        .next-button {
+            background: linear-gradient(135deg, #1a2b3c, #2a3b4c);
+            color: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .next-button:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .submit-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Progress bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #1a2b3c, #3498db);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Explanation section */
+        .explanation-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #1a2b3c;
+        }
+
+        .explanation-text {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* Timer */
+        .timer-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 15px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .timer-icon {
+            font-size: 18px;
+        }
+
+        .timer-text {
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #1a2b3c;
+        }
+
+        /* Dark theme */
+        body.dark-theme .quiz-container {
+            background-color: rgba(20, 20, 30, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .quiz-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-theme .quiz-info-item {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        body.dark-theme .question-number {
+            color: rgba(0, 204, 255, 0.9);
+        }
+
+        body.dark-theme .question-text {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-theme .answer-option {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-theme .answer-option:hover {
+            background-color: rgba(0, 204, 255, 0.1);
+        }
+
+        body.dark-theme .answer-option.selected {
+            border-color: rgba(0, 204, 255, 0.6);
+            background-color: rgba(0, 204, 255, 0.2);
+        }
+
+        body.dark-theme .answer-input {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-theme .answer-input:focus {
+            border-color: rgba(0, 204, 255, 0.6);
+        }
+
+        body.dark-theme .prev-button {
+            background-color: rgba(30, 30, 40, 0.7);
+            color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 204, 255, 0.3);
+        }
+
+        body.dark-theme .prev-button:hover {
+            background-color: rgba(40, 40, 50, 0.9);
+        }
+
+        body.dark-theme .explanation-container {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-left-color: rgba(0, 204, 255, 0.6);
+        }
+
+        body.dark-theme .explanation-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-theme .explanation-text {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        body.dark-theme .timer-container {
+            background-color: rgba(20, 20, 30, 0.8);
+        }
+
+        body.dark-theme .timer-text {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html">Upload</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Background iframe -->
+    <div class="background-container">
+        <iframe src="https://my.spline.design/backlightbgeffect-q6UPGQpR45rNxmZOW7x3JUP5/" frameborder="0" width="100%" height="100%" allow="autoplay; fullscreen; vr" loading="lazy"></iframe>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-container">
+        <div class="timer-icon">⏱️</div>
+        <div class="timer-text" id="timer">00:00</div>
+    </div>
+
+    <!-- Quiz container -->
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1 class="quiz-title">Quiz Time</h1>
+            <div class="quiz-info">
+                <div class="quiz-info-item">
+                    <span>Format:</span>
+                    <span id="quiz-format">Multiple Choice</span>
+                </div>
+                <div class="quiz-info-item">
+                    <span>Difficulty:</span>
+                    <span id="quiz-difficulty">Medium</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="question-container">
+            <div class="question-number" id="question-number">Question 1 of 5</div>
+            <div class="question-text" id="question-text">Loading question...</div>
+        </div>
+
+        <div class="answer-options" id="answer-options">
+            <!-- Answer options will be inserted here by JavaScript -->
+        </div>
+
+        <div class="explanation-container" id="explanation-container">
+            <div class="explanation-title">Explanation:</div>
+            <div class="explanation-text" id="explanation-text"></div>
+        </div>
+
+        <div class="quiz-navigation">
+            <button class="nav-button prev-button" id="prev-button">Previous</button>
+            <button class="nav-button next-button" id="next-button">Next</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+
+            // Get quiz data from localStorage
+            const currentQuiz = JSON.parse(localStorage.getItem('currentQuiz') || '{}');
+            const quizPreferences = JSON.parse(localStorage.getItem('quizPreferences') || '{}');
+            const pdfData = JSON.parse(localStorage.getItem('pdfData') || '{}');
+            const quizSettings = JSON.parse(localStorage.getItem('quizSettings') || '{}');
+
+            // Determine if we're coming from the quiz game or the regular flow
+            const isFromQuizGame = !!quizSettings.llm;
+
+            // If coming from quiz game, generate quiz based on settings
+            let quizData = currentQuiz;
+            if (isFromQuizGame) {
+                console.log('Quiz game settings found:', quizSettings);
+
+                // Map quiz game settings to quiz preferences
+                const formatMap = {
+                    'multiple-choice': '1',
+                    'fill-blanks': '2',
+                    'true-false': '3',
+                    'short-answer': '4',
+                    'mixed': '6'
+                };
+
+                const difficultyMap = {
+                    'easy': '1',
+                    'medium': '2',
+                    'hard': '3'
+                };
+
+                const format = formatMap[quizSettings.questionType] || '1';
+                const difficulty = difficultyMap[quizSettings.difficulty] || '2';
+                const numQuestions = parseInt(quizSettings.numQuestions) || 5;
+
+                // If we have a PDF ID, try to get quiz from server
+                if (quizSettings.contentType === 'pdf' && localStorage.getItem('pdfId')) {
+                    // We'll try to get the quiz from the server
+                    // For now, use simulated data
+                    quizData = createSimulatedQuiz(format, difficulty, numQuestions);
+
+                    // In a real implementation, we would call the server API here
+                    // fetchQuizFromServer(localStorage.getItem('pdfId'), format, difficulty, numQuestions);
+                } else if (quizSettings.contentType === 'topic' && quizSettings.content) {
+                    // Create a topic-based quiz
+                    quizData = createTopicBasedQuiz(quizSettings.content, format, difficulty, numQuestions, quizSettings.llm);
+                } else {
+                    // Fallback to simulated data
+                    quizData = createSimulatedQuiz(format, difficulty, numQuestions);
+                }
+
+                // Update quiz info based on quiz game settings
+                document.getElementById('quiz-format').textContent = getQuizTypeDisplay(quizSettings.questionType);
+                document.getElementById('quiz-difficulty').textContent = quizSettings.difficulty.charAt(0).toUpperCase() + quizSettings.difficulty.slice(1);
+
+                // Update page title based on content type
+                if (quizSettings.contentType === 'topic') {
+                    document.title = `QUIZERA - Quiz on ${quizSettings.content}`;
+                    document.querySelector('.quiz-title').textContent = `Quiz on ${quizSettings.content}`;
+                } else if (quizSettings.contentType === 'pdf' && pdfData.fileName) {
+                    document.title = `QUIZERA - Quiz on ${pdfData.fileName}`;
+                    document.querySelector('.quiz-title').textContent = `Quiz on ${pdfData.fileName}`;
+                } else {
+                    document.title = `QUIZERA - ${quizSettings.llm} Quiz`;
+                    document.querySelector('.quiz-title').textContent = `${quizSettings.llm.charAt(0).toUpperCase() + quizSettings.llm.slice(1)} Quiz`;
+                }
+            } else {
+                // Regular flow (not from quiz game)
+                if (!quizData.questions || quizData.questions.length === 0) {
+                    console.log('No quiz data found, using dummy data for testing');
+                    quizData = createSimulatedQuiz(
+                        quizPreferences.format || '1',
+                        quizPreferences.difficulty || '2',
+                        5
+                    );
+                }
+
+                // Update quiz info
+                document.getElementById('quiz-format').textContent = getFormatName(quizPreferences.format || '1');
+                document.getElementById('quiz-difficulty').textContent = getDifficultyName(quizPreferences.difficulty || '2');
+
+                // Update page title if PDF name is available
+                if (pdfData.fileName) {
+                    document.title = `QUIZERA - Quiz on ${pdfData.fileName}`;
+                    document.querySelector('.quiz-title').textContent = `Quiz on ${pdfData.fileName}`;
+                }
+            }
+
+            // Quiz state
+            let currentQuestionIndex = 0;
+            const questions = quizData.questions;
+            const userAnswers = new Array(questions.length).fill(null);
+            let quizStartTime = new Date();
+            let timerInterval;
+
+            // Initialize the quiz
+            initializeQuiz();
+
+            // Initialize the quiz
+            function initializeQuiz() {
+                // Start the timer
+                startTimer();
+
+                // Show the first question
+                showQuestion(currentQuestionIndex);
+
+                // Update the progress bar
+                updateProgressBar();
+
+                // Add event listeners to navigation buttons
+                document.getElementById('prev-button').addEventListener('click', goToPreviousQuestion);
+                document.getElementById('next-button').addEventListener('click', goToNextQuestion);
+            }
+
+            // Show a question
+            function showQuestion(index) {
+                const question = questions[index];
+
+                // Update question number and text
+                document.getElementById('question-number').textContent = `Question ${index + 1} of ${questions.length}`;
+                document.getElementById('question-text').textContent = question.question;
+
+                // Clear previous answer options
+                const answerOptionsContainer = document.getElementById('answer-options');
+                answerOptionsContainer.innerHTML = '';
+
+                // Hide explanation
+                document.getElementById('explanation-container').style.display = 'none';
+
+                // Determine question type and create appropriate answer interface
+                if (question.options) {
+                    // Multiple choice question
+                    question.options.forEach((option, optionIndex) => {
+                        const optionElement = document.createElement('div');
+                        optionElement.className = 'answer-option';
+                        optionElement.textContent = option;
+
+                        // Check if this option was previously selected
+                        if (userAnswers[index] === optionIndex) {
+                            optionElement.classList.add('selected');
+                        }
+
+                        optionElement.addEventListener('click', () => {
+                            // Remove selected class from all options
+                            document.querySelectorAll('.answer-option').forEach(opt => {
+                                opt.classList.remove('selected');
+                            });
+
+                            // Add selected class to clicked option
+                            optionElement.classList.add('selected');
+
+                            // Save the answer
+                            userAnswers[index] = optionIndex;
+                        });
+
+                        answerOptionsContainer.appendChild(optionElement);
+                    });
+                } else {
+                    // Text input question (fill in the blank, short answer, etc.)
+                    const inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                    inputElement.className = 'answer-input';
+                    inputElement.placeholder = 'Type your answer here...';
+
+                    // Set previously entered answer if any
+                    if (userAnswers[index] !== null) {
+                        inputElement.value = userAnswers[index];
+                    }
+
+                    inputElement.addEventListener('input', (e) => {
+                        userAnswers[index] = e.target.value;
+                    });
+
+                    answerOptionsContainer.appendChild(inputElement);
+                }
+
+                // Update navigation buttons
+                updateNavigationButtons();
+            }
+
+            // Go to the previous question
+            function goToPreviousQuestion() {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    showQuestion(currentQuestionIndex);
+                    updateProgressBar();
+                }
+            }
+
+            // Go to the next question
+            function goToNextQuestion() {
+                if (currentQuestionIndex < questions.length - 1) {
+                    currentQuestionIndex++;
+                    showQuestion(currentQuestionIndex);
+                    updateProgressBar();
+                } else {
+                    // This is the last question, show submit button
+                    const nextButton = document.getElementById('next-button');
+                    nextButton.textContent = 'Submit Quiz';
+                    nextButton.className = 'nav-button submit-button';
+                    nextButton.removeEventListener('click', goToNextQuestion);
+                    nextButton.addEventListener('click', submitQuiz);
+                }
+            }
+
+            // Update the progress bar
+            function updateProgressBar() {
+                const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+            }
+
+            // Update navigation buttons
+            function updateNavigationButtons() {
+                const prevButton = document.getElementById('prev-button');
+                const nextButton = document.getElementById('next-button');
+
+                // Disable previous button on first question
+                prevButton.disabled = currentQuestionIndex === 0;
+
+                // Change next button to submit on last question
+                if (currentQuestionIndex === questions.length - 1) {
+                    nextButton.textContent = 'Submit Quiz';
+                    nextButton.className = 'nav-button submit-button';
+                    nextButton.removeEventListener('click', goToNextQuestion);
+                    nextButton.addEventListener('click', submitQuiz);
+                } else {
+                    nextButton.textContent = 'Next';
+                    nextButton.className = 'nav-button next-button';
+                    nextButton.removeEventListener('click', submitQuiz);
+                    nextButton.addEventListener('click', goToNextQuestion);
+                }
+            }
+
+            // Submit the quiz
+            function submitQuiz() {
+                // Stop the timer
+                clearInterval(timerInterval);
+
+                // Calculate score and prepare detailed results
+                let score = 0;
+                const detailedResults = [];
+
+                questions.forEach((question, index) => {
+                    const userAnswer = userAnswers[index];
+                    let isCorrect = false;
+                    let userAnswerText = '';
+
+                    if (question.options) {
+                        // Multiple choice or True/False
+                        if (userAnswer !== null && userAnswer >= 0 && userAnswer < question.options.length) {
+                            userAnswerText = question.options[userAnswer];
+                            if (question.options[userAnswer] === question.answer) {
+                                score++;
+                                isCorrect = true;
+                            }
+                        } else {
+                            userAnswerText = 'No answer provided';
+                        }
+                    } else {
+                        // Text input (fill in the blanks, short answer, long answer)
+                        userAnswerText = userAnswer || 'No answer provided';
+
+                        // For text inputs, do a case-insensitive comparison
+                        if (userAnswer && userAnswer.toLowerCase().trim() === question.answer.toLowerCase().trim()) {
+                            score++;
+                            isCorrect = true;
+                        }
+                    }
+
+                    // Add detailed result for this question
+                    detailedResults.push({
+                        question: question.question,
+                        options: question.options || null,
+                        userAnswer: userAnswerText,
+                        correctAnswer: question.answer,
+                        explanation: question.explanation || '',
+                        isCorrect: isCorrect
+                    });
+                });
+
+                // Calculate percentage
+                const percentage = Math.round((score / questions.length) * 100);
+
+                // Save results to localStorage
+                const quizResults = {
+                    score: score,
+                    total: questions.length,
+                    percentage: percentage,
+                    timeTaken: document.getElementById('timer').textContent,
+                    date: new Date().toISOString(),
+                    pdfName: pdfData.fileName || 'Sample Quiz',
+                    format: getFormatName(quizPreferences.format || '1'),
+                    difficulty: getDifficultyName(quizPreferences.difficulty || '2'),
+                    detailedResults: detailedResults
+                };
+
+                localStorage.setItem('quizResults', JSON.stringify(quizResults));
+
+                // Also save to localStorage with a unique ID for the dashboard
+                const quizId = 'quizResult_' + Date.now();
+                localStorage.setItem(quizId, JSON.stringify(quizResults));
+
+                // Redirect to dashboard page instead of results page
+                window.location.href = 'dashboard.html?newQuiz=true';
+            }
+
+            // Start the timer
+            function startTimer() {
+                quizStartTime = new Date();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+
+            // Update the timer
+            function updateTimer() {
+                const currentTime = new Date();
+                const elapsedTime = Math.floor((currentTime - quizStartTime) / 1000);
+
+                const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+                const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }
+
+            // Helper function to get format name
+            function getFormatName(formatId) {
+                const formats = {
+                    '1': 'Multiple Choice',
+                    '2': 'Fill in the Blanks',
+                    '3': 'True/False',
+                    '4': 'Short Answer',
+                    '5': 'Long Answer',
+                    '6': 'Mixed Format'
+                };
+                return formats[formatId] || 'Multiple Choice';
+            }
+
+            // Helper function to get difficulty name
+            function getDifficultyName(difficultyId) {
+                const difficulties = {
+                    '1': 'Easy',
+                    '2': 'Medium',
+                    '3': 'Hard'
+                };
+                return difficulties[difficultyId] || 'Medium';
+            }
+
+            // Helper function to get quiz type display name
+            function getQuizTypeDisplay(questionType) {
+                const types = {
+                    'multiple-choice': 'Multiple Choice',
+                    'fill-blanks': 'Fill in the Blanks',
+                    'true-false': 'True/False',
+                    'short-answer': 'Short Answer',
+                    'mixed': 'Mixed Format'
+                };
+                return types[questionType] || 'Multiple Choice';
+            }
+
+            // Function to create a topic-based quiz with varied questions
+            function createTopicBasedQuiz(topic, format, difficulty, numQuestions, llm) {
+                console.log(`Creating ${llm} quiz on "${topic}" with format ${format}, difficulty ${difficulty}, and ${numQuestions} questions`);
+
+                // In a real implementation, we would call the server API here
+                // For now, use simulated data with the topic in the questions
+
+                const questions = [];
+                const difficultyText = difficulty === '1' ? 'easy' : (difficulty === '3' ? 'hard' : 'medium');
+                const llmName = llm.charAt(0).toUpperCase() + llm.slice(1);
+
+                // Create a timestamp to ensure uniqueness
+                const timestamp = Date.now();
+
+                // Question templates for multiple choice questions
+                const mcqTemplates = [
+                    {
+                        questionTemplate: `What is one of the key concepts in ${topic}?`,
+                        options: [
+                            `A key concept in ${topic} is theoretical frameworks`,
+                            `A fundamental aspect of ${topic} is methodological approaches`,
+                            `An important principle in ${topic} is systematic analysis`,
+                            `A critical element of ${topic} is practical application`
+                        ],
+                        answer: `A critical element of ${topic} is practical application`,
+                        explanation: `This question tests your understanding of the practical applications within ${topic}.`
+                    },
+                    {
+                        questionTemplate: `Which of the following best describes a core principle of ${topic}?`,
+                        options: [
+                            `${topic} focuses primarily on quantitative methods`,
+                            `${topic} emphasizes interdisciplinary approaches`,
+                            `${topic} relies exclusively on historical precedents`,
+                            `${topic} rejects conventional methodologies`
+                        ],
+                        answer: `${topic} emphasizes interdisciplinary approaches`,
+                        explanation: `Interdisciplinary approaches are central to ${topic}.`
+                    },
+                    {
+                        questionTemplate: `What is the most significant contribution of ${topic} to modern understanding?`,
+                        options: [
+                            `${topic} has revolutionized how we approach problem-solving`,
+                            `${topic} has provided new frameworks for analysis`,
+                            `${topic} has challenged traditional assumptions`,
+                            `${topic} has integrated diverse perspectives`
+                        ],
+                        answer: `${topic} has integrated diverse perspectives`,
+                        explanation: `The integration of diverse perspectives is one of the most valuable contributions of ${topic}.`
+                    },
+                    {
+                        questionTemplate: `Which statement about ${topic} is most accurate?`,
+                        options: [
+                            `${topic} emerged primarily in the 21st century`,
+                            `${topic} has remained largely unchanged over time`,
+                            `${topic} continues to evolve with new research`,
+                            `${topic} is primarily theoretical with few practical applications`
+                        ],
+                        answer: `${topic} continues to evolve with new research`,
+                        explanation: `Like most fields, ${topic} is constantly evolving as new research emerges.`
+                    },
+                    {
+                        questionTemplate: `What approach is most commonly used in ${topic}?`,
+                        options: [
+                            `A historical approach focusing on precedents`,
+                            `A comparative approach examining multiple perspectives`,
+                            `A critical approach challenging assumptions`,
+                            `An integrated approach combining multiple methodologies`
+                        ],
+                        answer: `An integrated approach combining multiple methodologies`,
+                        explanation: `${topic} typically employs an integrated approach that combines various methodologies.`
+                    }
+                ];
+
+                // Question templates for fill-in-the-blank questions
+                const fillBlankTemplates = [
+                    {
+                        questionTemplate: `In the field of ${topic}, the process of _____ is considered fundamental to understanding core principles.`,
+                        answer: "analysis",
+                        explanation: `Analysis is a fundamental process in ${topic} as it allows for the breakdown of complex concepts.`
+                    },
+                    {
+                        questionTemplate: `${topic} is often characterized by its emphasis on _____, which distinguishes it from related fields.`,
+                        answer: "innovation",
+                        explanation: `Innovation is a distinguishing characteristic of ${topic}.`
+                    },
+                    {
+                        questionTemplate: `The concept of _____ plays a central role in understanding the development of ${topic}.`,
+                        answer: "evolution",
+                        explanation: `Understanding how ${topic} has evolved over time is crucial to grasping its current state.`
+                    },
+                    {
+                        questionTemplate: `In contemporary discussions of ${topic}, the principle of _____ is frequently cited as essential.`,
+                        answer: "integration",
+                        explanation: `Integration of diverse elements is essential in modern approaches to ${topic}.`
+                    },
+                    {
+                        questionTemplate: `Scholars in ${topic} often emphasize the importance of _____ when addressing complex problems.`,
+                        answer: "collaboration",
+                        explanation: `Collaboration is emphasized in ${topic} as a way to address multifaceted challenges.`
+                    }
+                ];
+
+                // Question templates for true/false questions
+                const trueFalseTemplates = [
+                    {
+                        questionTemplate: `True or False: ${topic} is primarily concerned with theoretical concepts rather than practical applications.`,
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: `${topic} involves both theoretical concepts and practical applications.`
+                    },
+                    {
+                        questionTemplate: `True or False: ${topic} has remained largely unchanged in its fundamental principles over the past century.`,
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: `${topic} has evolved significantly over time, adapting to new discoveries and societal changes.`
+                    },
+                    {
+                        questionTemplate: `True or False: The study of ${topic} requires an interdisciplinary approach.`,
+                        options: ["True", "False"],
+                        answer: "True",
+                        explanation: `${topic} typically requires drawing from multiple disciplines for a comprehensive understanding.`
+                    },
+                    {
+                        questionTemplate: `True or False: Recent developments in technology have had minimal impact on ${topic}.`,
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: `Technology has significantly influenced how we approach and understand ${topic}.`
+                    },
+                    {
+                        questionTemplate: `True or False: ${topic} is primarily studied in academic settings with little relevance to everyday life.`,
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: `${topic} has numerous applications and relevance to everyday situations and challenges.`
+                    }
+                ];
+
+                // Question templates for short answer questions
+                const shortAnswerTemplates = [
+                    {
+                        questionTemplate: `Briefly explain why ${topic} is relevant in today's world.`,
+                        answer: `${topic} is relevant today because it addresses contemporary challenges and provides frameworks for understanding complex problems.`,
+                        explanation: `This question tests your ability to connect ${topic} to current contexts.`
+                    },
+                    {
+                        questionTemplate: `Describe one major challenge currently facing researchers in ${topic}.`,
+                        answer: `A major challenge in ${topic} is integrating new technological developments while maintaining core principles and ethical considerations.`,
+                        explanation: `This question examines your awareness of current issues in the field.`
+                    },
+                    {
+                        questionTemplate: `Explain how ${topic} has evolved over the past decade.`,
+                        answer: `${topic} has evolved through the integration of new technologies, methodologies, and cross-disciplinary approaches, becoming more data-driven and collaborative.`,
+                        explanation: `This question tests your understanding of recent developments in the field.`
+                    },
+                    {
+                        questionTemplate: `Identify one way in which ${topic} contributes to solving real-world problems.`,
+                        answer: `${topic} contributes to solving real-world problems by providing analytical frameworks, evidence-based approaches, and innovative methodologies for addressing complex challenges.`,
+                        explanation: `This question assesses your understanding of practical applications.`
+                    },
+                    {
+                        questionTemplate: `Describe the relationship between ${topic} and related fields of study.`,
+                        answer: `${topic} intersects with multiple fields, borrowing methodologies and concepts while contributing unique perspectives that enhance understanding across disciplines.`,
+                        explanation: `This question examines your grasp of how ${topic} fits into the broader academic landscape.`
+                    }
+                ];
+
+                // Generate questions based on quiz type and topic
+                for (let i = 0; i < numQuestions; i++) {
+                    let question;
+
+                    // Add a unique identifier to each question to prevent caching
+                    const uniqueId = `${timestamp}_${i}`;
+
+                    switch (format) {
+                        case '1': // MCQs
+                            // Select a random template from the MCQ templates
+                            const mcqTemplate = mcqTemplates[Math.floor(Math.random() * mcqTemplates.length)];
+                            question = {
+                                question: `[${llmName}] ${difficultyText.toUpperCase()} question about ${topic} (ID: ${uniqueId}): ${mcqTemplate.questionTemplate}`,
+                                options: [...mcqTemplate.options], // Create a copy to avoid reference issues
+                                answer: mcqTemplate.answer,
+                                explanation: mcqTemplate.explanation
+                            };
+
+                            // Shuffle the options to add more variety
+                            shuffleArray(question.options);
+                            // Make sure we update the answer to match the new position
+                            question.answer = question.options.find(option => option === mcqTemplate.answer);
+                            break;
+
+                        case '2': // Fill in the blanks
+                            // Select a random template from the fill-in-the-blank templates
+                            const fillBlankTemplate = fillBlankTemplates[Math.floor(Math.random() * fillBlankTemplates.length)];
+                            question = {
+                                question: `[${llmName}] ${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${fillBlankTemplate.questionTemplate}`,
+                                answer: fillBlankTemplate.answer,
+                                explanation: fillBlankTemplate.explanation
+                            };
+                            break;
+
+                        case '3': // True/False
+                            // Select a random template from the true/false templates
+                            const trueFalseTemplate = trueFalseTemplates[Math.floor(Math.random() * trueFalseTemplates.length)];
+                            question = {
+                                question: `[${llmName}] ${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${trueFalseTemplate.questionTemplate}`,
+                                options: [...trueFalseTemplate.options], // Create a copy
+                                answer: trueFalseTemplate.answer,
+                                explanation: trueFalseTemplate.explanation
+                            };
+                            break;
+
+                        case '4': // Short answer
+                            // Select a random template from the short answer templates
+                            const shortAnswerTemplate = shortAnswerTemplates[Math.floor(Math.random() * shortAnswerTemplates.length)];
+                            question = {
+                                question: `[${llmName}] ${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${shortAnswerTemplate.questionTemplate}`,
+                                answer: shortAnswerTemplate.answer,
+                                explanation: shortAnswerTemplate.explanation
+                            };
+                            break;
+
+                        case '6': // Mix of all types
+                            // Determine question type based on index, but add some randomness
+                            const typeIndex = (i + Math.floor(Math.random() * 2)) % 4;
+                            if (typeIndex === 0) {
+                                const mixedMcqTemplate = mcqTemplates[Math.floor(Math.random() * mcqTemplates.length)];
+                                question = {
+                                    question: `[${llmName}] ${difficultyText.toUpperCase()} multiple choice (ID: ${uniqueId}): ${mixedMcqTemplate.questionTemplate}`,
+                                    options: [...mixedMcqTemplate.options],
+                                    answer: mixedMcqTemplate.answer,
+                                    explanation: mixedMcqTemplate.explanation
+                                };
+                                shuffleArray(question.options);
+                                question.answer = question.options.find(option => option === mixedMcqTemplate.answer);
+                            } else if (typeIndex === 1) {
+                                const mixedFillTemplate = fillBlankTemplates[Math.floor(Math.random() * fillBlankTemplates.length)];
+                                question = {
+                                    question: `[${llmName}] ${difficultyText.toUpperCase()} fill-in-the-blank (ID: ${uniqueId}): ${mixedFillTemplate.questionTemplate}`,
+                                    answer: mixedFillTemplate.answer,
+                                    explanation: mixedFillTemplate.explanation
+                                };
+                            } else if (typeIndex === 2) {
+                                const mixedTFTemplate = trueFalseTemplates[Math.floor(Math.random() * trueFalseTemplates.length)];
+                                question = {
+                                    question: `[${llmName}] ${difficultyText.toUpperCase()} true/false (ID: ${uniqueId}): ${mixedTFTemplate.questionTemplate}`,
+                                    options: [...mixedTFTemplate.options],
+                                    answer: mixedTFTemplate.answer,
+                                    explanation: mixedTFTemplate.explanation
+                                };
+                            } else {
+                                const mixedSATemplate = shortAnswerTemplates[Math.floor(Math.random() * shortAnswerTemplates.length)];
+                                question = {
+                                    question: `[${llmName}] ${difficultyText.toUpperCase()} short answer (ID: ${uniqueId}): ${mixedSATemplate.questionTemplate}`,
+                                    answer: mixedSATemplate.answer,
+                                    explanation: mixedSATemplate.explanation
+                                };
+                            }
+                            break;
+
+                        default:
+                            // Default to a random MCQ
+                            const defaultTemplate = mcqTemplates[Math.floor(Math.random() * mcqTemplates.length)];
+                            question = {
+                                question: `Question about ${topic} (ID: ${uniqueId}): ${defaultTemplate.questionTemplate}`,
+                                options: [...defaultTemplate.options],
+                                answer: defaultTemplate.answer,
+                                explanation: defaultTemplate.explanation
+                            };
+                            shuffleArray(question.options);
+                            question.answer = question.options.find(option => option === defaultTemplate.answer);
+                    }
+
+                    questions.push(question);
+                }
+
+                return { questions };
+            }
+
+            // Helper function to shuffle an array (for randomizing options)
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                }
+                return array;
+            }
+
+            // Function to create simulated quiz data for testing with more variety
+            function createSimulatedQuiz(quizType, difficulty, numQuestions) {
+                const questions = [];
+                const difficultyText = difficulty === '1' ? 'easy' : (difficulty === '3' ? 'hard' : 'medium');
+
+                // Create a timestamp to ensure uniqueness
+                const timestamp = Date.now();
+
+                // Sample topics for more variety
+                const sampleTopics = [
+                    "World History", "Biology", "Physics", "Literature",
+                    "Mathematics", "Computer Science", "Geography", "Art History",
+                    "Psychology", "Economics", "Chemistry", "Philosophy"
+                ];
+
+                // Sample MCQ questions
+                const mcqQuestions = [
+                    {
+                        question: "What is the capital of France?",
+                        options: ["Paris", "London", "Berlin", "Madrid"],
+                        answer: "Paris",
+                        explanation: "Paris is the capital and largest city of France."
+                    },
+                    {
+                        question: "Which planet is known as the Red Planet?",
+                        options: ["Mars", "Venus", "Jupiter", "Mercury"],
+                        answer: "Mars",
+                        explanation: "Mars appears reddish due to iron oxide (rust) on its surface."
+                    },
+                    {
+                        question: "Who wrote 'Romeo and Juliet'?",
+                        options: ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
+                        answer: "William Shakespeare",
+                        explanation: "Romeo and Juliet is a tragedy written by William Shakespeare early in his career."
+                    },
+                    {
+                        question: "What is the largest mammal?",
+                        options: ["Blue Whale", "African Elephant", "Giraffe", "Polar Bear"],
+                        answer: "Blue Whale",
+                        explanation: "The blue whale is the largest animal known to have ever existed."
+                    },
+                    {
+                        question: "Which element has the chemical symbol 'O'?",
+                        options: ["Oxygen", "Gold", "Silver", "Iron"],
+                        answer: "Oxygen",
+                        explanation: "Oxygen is represented by the symbol 'O' on the periodic table."
+                    }
+                ];
+
+                // Sample fill-in-the-blank questions
+                const fillBlankQuestions = [
+                    {
+                        question: "The process by which plants make their own food using sunlight is called _____.",
+                        answer: "photosynthesis",
+                        explanation: "Photosynthesis is the process used by plants to convert light energy into chemical energy."
+                    },
+                    {
+                        question: "Water boils at _____ degrees Celsius at standard atmospheric pressure.",
+                        answer: "100",
+                        explanation: "At standard atmospheric pressure (1 atmosphere), water boils at 100°C (212°F)."
+                    },
+                    {
+                        question: "The capital of Japan is _____.",
+                        answer: "Tokyo",
+                        explanation: "Tokyo is the capital and most populous city of Japan."
+                    },
+                    {
+                        question: "The formula for calculating the area of a circle is π × _____.",
+                        answer: "r²",
+                        explanation: "The area of a circle is calculated using the formula A = πr², where r is the radius."
+                    },
+                    {
+                        question: "The process of converting a gas directly to a solid without passing through the liquid state is called _____.",
+                        answer: "deposition",
+                        explanation: "Deposition is the phase transition in which gas transforms into solid without passing through the liquid phase."
+                    }
+                ];
+
+                // Sample true/false questions
+                const trueFalseQuestions = [
+                    {
+                        question: "The Great Wall of China is visible from space with the naked eye.",
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: "Contrary to popular belief, the Great Wall of China is not visible from space with the naked eye."
+                    },
+                    {
+                        question: "Diamonds are made of compressed carbon.",
+                        options: ["True", "False"],
+                        answer: "True",
+                        explanation: "Diamonds are indeed formed from carbon atoms arranged in a crystal structure under high pressure and temperature."
+                    },
+                    {
+                        question: "The Sun revolves around the Earth.",
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: "The Earth revolves around the Sun, not the other way around."
+                    },
+                    {
+                        question: "Sound travels faster in water than in air.",
+                        options: ["True", "False"],
+                        answer: "True",
+                        explanation: "Sound travels about 4.3 times faster in water than in air."
+                    },
+                    {
+                        question: "Humans use only 10% of their brains.",
+                        options: ["True", "False"],
+                        answer: "False",
+                        explanation: "This is a common myth. Humans use all parts of their brain, though not all at the same time."
+                    }
+                ];
+
+                // Sample short answer questions
+                const shortAnswerQuestions = [
+                    {
+                        question: "Briefly explain the concept of gravity.",
+                        answer: "Gravity is the force by which objects with mass attract one another. It's one of the four fundamental forces of nature.",
+                        explanation: "This question tests basic understanding of physical forces."
+                    },
+                    {
+                        question: "What is photosynthesis and why is it important?",
+                        answer: "Photosynthesis is the process by which plants convert light energy into chemical energy. It's important because it produces oxygen and forms the base of most food chains.",
+                        explanation: "This question tests understanding of a fundamental biological process."
+                    },
+                    {
+                        question: "Explain the water cycle in a few sentences.",
+                        answer: "The water cycle is the continuous movement of water on, above, and below Earth's surface through processes of evaporation, condensation, precipitation, and collection.",
+                        explanation: "This question tests understanding of an important environmental process."
+                    },
+                    {
+                        question: "What is democracy?",
+                        answer: "Democracy is a system of government where power is vested in the people, who rule either directly or through freely elected representatives.",
+                        explanation: "This question tests understanding of political systems."
+                    },
+                    {
+                        question: "Explain the concept of supply and demand.",
+                        answer: "Supply and demand is an economic model describing how the price of a product is determined by the relationship between its availability and consumer desire for it.",
+                        explanation: "This question tests understanding of basic economic principles."
+                    }
+                ];
+
+                // Generate questions based on quiz type
+                for (let i = 0; i < numQuestions; i++) {
+                    let question;
+
+                    // Add a unique identifier to each question to prevent caching
+                    const uniqueId = `${timestamp}_${i}`;
+
+                    // Select a random topic for variety
+                    const randomTopic = sampleTopics[Math.floor(Math.random() * sampleTopics.length)];
+
+                    switch (quizType) {
+                        case '1': // MCQs
+                            // Select a random MCQ
+                            const mcq = mcqQuestions[Math.floor(Math.random() * mcqQuestions.length)];
+                            question = {
+                                question: `${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${mcq.question}`,
+                                options: [...mcq.options], // Create a copy
+                                answer: mcq.answer,
+                                explanation: `${mcq.explanation} This is a ${difficultyText} level question.`
+                            };
+                            // Shuffle options for variety
+                            shuffleArray(question.options);
+                            // Make sure the answer is updated to match the new position
+                            question.answer = question.options.find(option => option === mcq.answer);
+                            break;
+
+                        case '2': // Fill in the blanks
+                            // Select a random fill-in-the-blank question
+                            const fillBlank = fillBlankQuestions[Math.floor(Math.random() * fillBlankQuestions.length)];
+                            question = {
+                                question: `${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${fillBlank.question}`,
+                                answer: fillBlank.answer,
+                                explanation: `${fillBlank.explanation} This is a ${difficultyText} level question.`
+                            };
+                            break;
+
+                        case '3': // True/False
+                            // Select a random true/false question
+                            const trueFalse = trueFalseQuestions[Math.floor(Math.random() * trueFalseQuestions.length)];
+                            question = {
+                                question: `${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${trueFalse.question}`,
+                                options: [...trueFalse.options],
+                                answer: trueFalse.answer,
+                                explanation: `${trueFalse.explanation} This is a ${difficultyText} level question.`
+                            };
+                            break;
+
+                        case '4': // Short answer
+                            // Select a random short answer question
+                            const shortAnswer = shortAnswerQuestions[Math.floor(Math.random() * shortAnswerQuestions.length)];
+                            question = {
+                                question: `${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${shortAnswer.question}`,
+                                answer: shortAnswer.answer,
+                                explanation: `${shortAnswer.explanation} This is a ${difficultyText} level question.`
+                            };
+                            break;
+
+                        case '5': // Long answer
+                            // Create a long answer question based on a random topic
+                            const longAnswerTopics = [
+                                `Discuss the major causes and effects of climate change.`,
+                                `Explain the impact of technology on modern society.`,
+                                `Analyze the factors that contributed to World War II.`,
+                                `Describe the process of evolution and its significance in biology.`,
+                                `Evaluate the importance of renewable energy sources for the future.`
+                            ];
+
+                            const longAnswerQuestion = longAnswerTopics[Math.floor(Math.random() * longAnswerTopics.length)];
+
+                            question = {
+                                question: `${difficultyText.toUpperCase()} (ID: ${uniqueId}): ${longAnswerQuestion}`,
+                                answer: `This is a comprehensive answer to the question about ${longAnswerQuestion.toLowerCase()}. It would include multiple paragraphs covering various aspects of the topic, supporting evidence, and a conclusion.`,
+                                explanation: `This is a ${difficultyText} level long answer question that requires detailed knowledge and critical thinking.`
+                            };
+                            break;
+
+                        case '6': // Mix of all types
+                            // Determine question type based on index and add randomness
+                            const typeIndex = (i + Math.floor(Math.random() * 2)) % 5;
+                            if (typeIndex === 0) {
+                                const mixedMcq = mcqQuestions[Math.floor(Math.random() * mcqQuestions.length)];
+                                question = {
+                                    question: `${difficultyText.toUpperCase()} multiple choice (ID: ${uniqueId}): ${mixedMcq.question}`,
+                                    options: [...mixedMcq.options],
+                                    answer: mixedMcq.answer,
+                                    explanation: `${mixedMcq.explanation} This is a ${difficultyText} level question.`
+                                };
+                                shuffleArray(question.options);
+                                question.answer = question.options.find(option => option === mixedMcq.answer);
+                            } else if (typeIndex === 1) {
+                                const mixedFill = fillBlankQuestions[Math.floor(Math.random() * fillBlankQuestions.length)];
+                                question = {
+                                    question: `${difficultyText.toUpperCase()} fill-in-the-blank (ID: ${uniqueId}): ${mixedFill.question}`,
+                                    answer: mixedFill.answer,
+                                    explanation: `${mixedFill.explanation} This is a ${difficultyText} level question.`
+                                };
+                            } else if (typeIndex === 2) {
+                                const mixedTF = trueFalseQuestions[Math.floor(Math.random() * trueFalseQuestions.length)];
+                                question = {
+                                    question: `${difficultyText.toUpperCase()} true/false (ID: ${uniqueId}): ${mixedTF.question}`,
+                                    options: [...mixedTF.options],
+                                    answer: mixedTF.answer,
+                                    explanation: `${mixedTF.explanation} This is a ${difficultyText} level question.`
+                                };
+                            } else if (typeIndex === 3) {
+                                const mixedSA = shortAnswerQuestions[Math.floor(Math.random() * shortAnswerQuestions.length)];
+                                question = {
+                                    question: `${difficultyText.toUpperCase()} short answer (ID: ${uniqueId}): ${mixedSA.question}`,
+                                    answer: mixedSA.answer,
+                                    explanation: `${mixedSA.explanation} This is a ${difficultyText} level question.`
+                                };
+                            } else {
+                                const longAnswerTopics = [
+                                    `Discuss the major causes and effects of climate change.`,
+                                    `Explain the impact of technology on modern society.`,
+                                    `Analyze the factors that contributed to World War II.`,
+                                    `Describe the process of evolution and its significance in biology.`,
+                                    `Evaluate the importance of renewable energy sources for the future.`
+                                ];
+
+                                const mixedLA = longAnswerTopics[Math.floor(Math.random() * longAnswerTopics.length)];
+
+                                question = {
+                                    question: `${difficultyText.toUpperCase()} long answer (ID: ${uniqueId}): ${mixedLA}`,
+                                    answer: `This is a comprehensive answer to the question about ${mixedLA.toLowerCase()}. It would include multiple paragraphs covering various aspects of the topic, supporting evidence, and a conclusion.`,
+                                    explanation: `This is a ${difficultyText} level long answer question that requires detailed knowledge and critical thinking.`
+                                };
+                            }
+                            break;
+
+                        default:
+                            // Default to a random MCQ
+                            const defaultMcq = mcqQuestions[Math.floor(Math.random() * mcqQuestions.length)];
+                            question = {
+                                question: `Question (ID: ${uniqueId}): ${defaultMcq.question}`,
+                                options: [...defaultMcq.options],
+                                answer: defaultMcq.answer,
+                                explanation: defaultMcq.explanation
+                            };
+                            shuffleArray(question.options);
+                            question.answer = question.options.find(option => option === defaultMcq.answer);
+                    }
+
+                    questions.push(question);
+                }
+
+                return { questions };
+            }
+        });
+    </script>
+</body>
+</html>

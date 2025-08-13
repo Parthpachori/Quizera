@@ -1,0 +1,513 @@
+@font-face {
+    font-family: 'Casanova Scotia';
+    src: url('fonts/casanova-scotia-font/CasanovaScotia-Xm0K.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Azonix';
+    src: url('fonts/azonix-font/Azonix-1VB0.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #f0f0f0; /* Light gray background matching the screenshot */
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Header Styles */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 3rem;
+    z-index: 10;
+    background-color: rgba(240, 240, 240, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+}
+
+.logo {
+    font-family: 'Azonix', sans-serif;
+    font-size: 1.8rem;
+    color: #222;
+    letter-spacing: 0.2em;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+nav a {
+    font-family: 'Azonix', sans-serif;
+    text-decoration: none;
+    color: #333;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    padding: 0.5rem 0.8rem;
+    border-radius: 4px;
+}
+
+nav a:hover {
+    color: #111;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+nav a.active {
+    color: #111;
+    background-color: rgba(0, 0, 0, 0.07);
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 80px; /* Add padding to account for the fixed header */
+}
+
+.model-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.1);
+}
+
+iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: 1;
+}
+
+.background-text {
+    position: absolute;
+    font-family: 'Casanova Scotia', sans-serif;
+    font-size: 16vw;
+    background: linear-gradient(to bottom, rgba(200, 200, 200, 0.9), rgba(180, 180, 180, 0.9));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    z-index: 0;
+    width: 100%;
+    text-align: center;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    letter-spacing: 0.05em;
+    pointer-events: none;
+    text-shadow:
+        0 0 20px rgba(0, 0, 0, 0.1),
+        2px 2px 4px rgba(0, 0, 0, 0.05);
+    user-select: none;
+    font-weight: bold;
+}
+
+/* Corner Icons Styles */
+.corner-icon {
+    position: fixed;
+    z-index: 5;
+}
+
+.top-left {
+    left: 40px;
+    top: 120px;
+}
+
+.top-right {
+    right: 40px;
+    top: 120px;
+}
+
+.bottom-left {
+    left: 40px;
+    bottom: 120px;
+    z-index: 10003; /* Higher than all overlay z-indices */
+}
+
+.bottom-right {
+    right: 40px;
+    bottom: 120px;
+    z-index: 10003; /* Higher than all overlay z-indices */
+}
+
+.icon-wrapper {
+    width: 55px;
+    height: 55px;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.icon-wrapper:hover {
+    transform: scale(1.1);
+}
+
+.side-icon {
+    width: 50px;
+    height: 50px;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.icon-wrapper:hover .side-icon {
+    opacity: 1;
+}
+
+/* Popup Box Styles */
+.popup-box {
+    position: absolute;
+    top: 0;
+    left: 70px;
+    width: 280px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    transform: translateX(-10px);
+    z-index: 100;
+    max-width: 90vw;
+}
+
+.popup-box::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: -10px;
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    transform: rotate(45deg);
+    box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.05);
+}
+
+.icon-wrapper:hover .popup-box {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.icon-wrapper:hover .info-popup {
+    transform: translateX(0);
+}
+
+.icon-wrapper:hover .theme-popup {
+    transform: translateY(0);
+}
+
+.icon-wrapper:hover #game-controller-popup {
+    transform: translateX(0);
+}
+
+.popup-box h3 {
+    font-family: 'Azonix', sans-serif;
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.popup-box p {
+    font-family: 'Azonix', sans-serif;
+    font-size: 12px;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #666;
+    letter-spacing: 0.05em;
+}
+
+.upload-btn {
+    display: inline-block;
+    background-color: #222;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Azonix', sans-serif;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.upload-btn:hover {
+    background-color: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Game Controller Popup Styles */
+#game-controller-popup {
+    top: auto;
+    bottom: 0;
+    left: 70px;
+    transform-origin: left bottom;
+    transform: translateX(-10px);
+    width: 280px;
+}
+
+#game-controller-popup::before {
+    top: auto;
+    bottom: 25px;
+    left: -10px;
+    box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.05);
+    transform: rotate(45deg);
+}
+
+/* Info Popup Styles */
+.info-popup {
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: 70px;
+    transform-origin: right center;
+    transform: translateX(10px);
+    width: 320px;
+}
+
+.info-popup::before {
+    top: 25px;
+    left: auto;
+    right: -10px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.05);
+    transform: rotate(225deg);
+}
+
+.instruction-list {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.instruction-list li {
+    margin-bottom: 10px;
+    font-family: 'Azonix', sans-serif;
+    font-size: 11px;
+    color: #666;
+    line-height: 1.5;
+    letter-spacing: 0.05em;
+}
+
+/* Theme Popup Styles */
+.theme-popup {
+    top: auto;
+    bottom: 70px;
+    left: auto;
+    right: 0;
+    transform-origin: bottom right;
+    transform: translateY(10px);
+    width: 250px;
+}
+
+.theme-popup::before {
+    top: auto;
+    bottom: -10px;
+    left: auto;
+    right: 30px;
+    box-shadow: -5px -5px 10px rgba(0, 0, 0, 0.05);
+    transform: rotate(45deg);
+}
+
+.theme-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.theme-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 2px solid #eee;
+    background-color: white;
+    font-family: 'Azonix', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-btn:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+}
+
+.theme-btn.active {
+    background-color: #222;
+    color: white;
+    border-color: #222;
+}
+
+/* Dark Theme Styles */
+body.dark-theme {
+    background-color: #222;
+    color: #f0f0f0;
+}
+
+body.dark-theme .main-header {
+    background-color: rgba(34, 34, 34, 0.85);
+}
+
+body.dark-theme .logo,
+body.dark-theme nav a {
+    color: #f0f0f0;
+}
+
+body.dark-theme nav a:hover,
+body.dark-theme nav a.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .background-text {
+    background: linear-gradient(to bottom, rgba(60, 60, 60, 0.9), rgba(40, 40, 40, 0.9));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+body.dark-theme .side-icon {
+    filter: invert(1);
+}
+
+body.dark-theme .popup-box {
+    background-color: #333;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-theme .popup-box::before {
+    background-color: #333;
+}
+
+body.dark-theme .popup-box h3,
+body.dark-theme .popup-box p,
+body.dark-theme .instruction-list li {
+    color: #f0f0f0;
+}
+
+body.dark-theme .upload-btn {
+    background-color: #444;
+}
+
+body.dark-theme .upload-btn:hover {
+    background-color: #555;
+}
+
+body.dark-theme .theme-btn {
+    background-color: #333;
+    border-color: #444;
+    color: #f0f0f0;
+}
+
+body.dark-theme .theme-btn.active {
+    background-color: #f0f0f0;
+    color: #222;
+    border-color: #f0f0f0;
+}
+
+body.dark-theme .spline-credit-overlay,
+body.dark-theme .spline-credit-overlay-2,
+body.dark-theme .spline-credit-overlay-3,
+body.dark-theme .spline-credit-overlay-4,
+body.dark-theme .credit-blocker {
+    background-color: #222;
+}
+
+/* Game popup before styles removed */
+
+/* Play button styles removed */
+
+.credit-blocker {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 150px;
+    height: 40px;
+    background-color: #f0f0f0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Custom overlays to hide Spline credit */
+.spline-credit-overlay,
+.spline-credit-overlay-2,
+.spline-credit-overlay-3 {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 250px;
+    height: 80px;
+    background-color: #f0f0f0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.spline-credit-overlay-2 {
+    width: 270px;
+    height: 90px;
+    z-index: 10000;
+    background-color: #f0f0f0;
+}
+
+.spline-credit-overlay-3 {
+    width: 290px;
+    height: 100px;
+    z-index: 10001;
+    background-color: #f0f0f0;
+}
+
+.spline-credit-overlay-4 {
+    width: 300px;
+    height: 110px;
+    z-index: 10002;
+    background-color: #f0f0f0;
+}
+
+/* Additional CSS to hide Spline credit */
+.model-container iframe {
+    position: relative;
+}
+
+/* Hide any links or elements containing Spline text */
+.model-container iframe[src*="spline"]::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 200px;
+    height: 50px;
+    background-color: #f0f0f0;
+    z-index: 9999;
+}

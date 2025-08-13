@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - LLM Quiz Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'Azonix';
+            src: url('fonts/Azonix.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            background-color: #f5f5f5;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Full-screen iframe background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .background-container iframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+
+        /* Make the body pass through pointer events to the background but allow scrolling */
+        body {
+            pointer-events: none;
+            overflow-y: auto !important;
+            height: auto !important;
+        }
+
+        /* But enable pointer events for all interactive elements */
+        header, .main-container, button, input, select, .llm-card, .input-section, .quiz-options {
+            pointer-events: auto;
+        }
+
+        /* Header */
+        header {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            font-family: 'Azonix', sans-serif;
+            font-size: 28px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 30px;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        nav ul li a:hover {
+            color: #f0f0f0;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        nav ul li a.active {
+            color: #fff;
+        }
+
+        nav ul li a.active::after {
+            width: 100%;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .page-title {
+            font-family: 'Azonix', sans-serif;
+            font-size: 36px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+
+        .page-subtitle {
+            font-size: 18px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 50px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        /* LLM Selection */
+        .section-title {
+            font-family: 'Azonix', sans-serif;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 20px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .llm-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+        }
+
+        .llm-card {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .llm-card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .llm-card.selected {
+            border-color: #fff;
+            background-color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .llm-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .llm-name {
+            font-family: 'Azonix', sans-serif;
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .llm-description {
+            font-size: 14px;
+            color: #fff;
+            line-height: 1.5;
+        }
+
+        /* Input Section */
+        .input-section {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .input-tab {
+            padding: 10px 30px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.3);
+            margin: 0 5px;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .input-tab:hover {
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .input-tab.active {
+            color: #fff;
+            border-bottom-color: #fff;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .input-content {
+            display: none;
+        }
+
+        .input-content.active {
+            display: block;
+        }
+
+        .topic-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .topic-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .file-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .file-upload-area:hover {
+            border-color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .file-upload-icon {
+            font-size: 50px;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .file-upload-text {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .file-upload-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .file-upload-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #fff;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* Quiz Options */
+        .quiz-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 50px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-group {
+            margin-bottom: 20px;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .option-label {
+            display: block;
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .option-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            color: #fff;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .option-select:focus {
+            outline: none;
+            border-color: #fff;
+            background-color: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Generate Button */
+        .generate-btn-container {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 50px;
+            border-radius: 30px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 255, 255, 0.1);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+            }
+
+            nav ul {
+                margin-top: 15px;
+            }
+
+            nav ul li {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .llm-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Spline credit removal */
+        .spline-credit-overlay {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 200px;
+            height: 50px;
+            background-color: #000;
+            z-index: 1000;
+        }
+
+        /* Additional overlay for complete coverage */
+        .background-container:after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 200px;
+            height: 50px;
+            background-color: #000;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Background iframe -->
+    <div class="background-container">
+        <iframe src='https://my.spline.design/rippleeffect-yDiapKXpd4yaWvaYRABjj8Kr/' frameborder='0' width='100%' height='100%'></iframe>
+    </div>
+
+    <!-- Spline credit overlay -->
+    <div class="spline-credit-overlay"></div>
+
+    <div class="main-container">
+        <h1 class="page-title">AI-Powered Quiz Generator</h1>
+        <p class="page-subtitle">Create custom quizzes using advanced AI models. Choose your preferred language model, enter a topic or upload a PDF, and customize your quiz settings.</p>
+
+        <!-- LLM Selection Section -->
+        <h2 class="section-title">Choose AI Model</h2>
+        <div class="llm-selection">
+            <div class="llm-card" data-llm="gemini">
+                <div class="llm-icon">🤖</div>
+                <div class="llm-name">Gemini</div>
+                <div class="llm-description">Google's advanced AI model with strong reasoning capabilities and up-to-date knowledge.</div>
+            </div>
+            <div class="llm-card" data-llm="gpt">
+                <div class="llm-icon">🧠</div>
+                <div class="llm-name">GPT-4</div>
+                <div class="llm-description">OpenAI's powerful model with broad knowledge and excellent understanding of complex topics.</div>
+            </div>
+            <div class="llm-card" data-llm="claude">
+                <div class="llm-icon">🔮</div>
+                <div class="llm-name">Claude</div>
+                <div class="llm-description">Anthropic's helpful and harmless AI assistant with nuanced understanding of context.</div>
+            </div>
+            <div class="llm-card" data-llm="llama">
+                <div class="llm-icon">🦙</div>
+                <div class="llm-name">Llama</div>
+                <div class="llm-description">Meta's open-source large language model with strong performance across various tasks.</div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <h2 class="section-title">Quiz Content</h2>
+        <div class="input-section">
+            <div class="input-tabs">
+                <div class="input-tab active" data-tab="topic">Enter Topic</div>
+                <div class="input-tab" data-tab="pdf">Upload PDF</div>
+            </div>
+
+            <div class="input-content active" id="topic-content">
+                <input type="text" class="topic-input" placeholder="Enter a topic (e.g., World History, Quantum Physics, Machine Learning)">
+            </div>
+
+            <div class="input-content" id="pdf-content">
+                <div class="file-upload-area">
+                    <div class="file-upload-icon">📄</div>
+                    <div class="file-upload-text">Drag & drop your PDF here or</div>
+                    <input type="file" id="pdf-file" accept=".pdf" style="display: none;">
+                    <button class="file-upload-btn" onclick="document.getElementById('pdf-file').click()">Browse Files</button>
+                    <div class="file-name" id="file-name"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Options -->
+        <h2 class="section-title">Quiz Settings</h2>
+        <div class="quiz-options">
+            <div class="option-group">
+                <label class="option-label">Question Type</label>
+                <select class="option-select" id="question-type">
+                    <option value="multiple-choice">Multiple Choice</option>
+                    <option value="fill-blanks">Fill in the Blanks</option>
+                    <option value="true-false">True/False</option>
+                    <option value="short-answer">Short Answer</option>
+                    <option value="long-answer">Long Answer</option>
+                    <option value="mixed">Mixed Format</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label class="option-label">Difficulty</label>
+                <select class="option-select" id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label class="option-label">Number of Questions</label>
+                <select class="option-select" id="num-questions">
+                    <option value="5">5 Questions</option>
+                    <option value="10">10 Questions</option>
+                    <option value="15">15 Questions</option>
+                    <option value="20">20 Questions</option>
+                    <option value="25">25 Questions</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label class="option-label">Time Limit</label>
+                <select class="option-select" id="time-limit">
+                    <option value="none">No Time Limit</option>
+                    <option value="30">30 Seconds per Question</option>
+                    <option value="60">1 Minute per Question</option>
+                    <option value="120">2 Minutes per Question</option>
+                    <option value="300">5 Minutes per Question</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="generate-btn-container">
+            <button class="generate-btn" id="generate-quiz-btn">Generate Quiz</button>
+        </div>
+    </div>
+
+    <script>
+        // API Keys for different LLMs
+        const API_KEYS = {
+            gpt: "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",
+            claude: "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",
+            llama: "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",
+            gemini: "default-fallback-key" // Placeholder for Gemini key
+        };
+
+        // Function to validate API key
+        async function validateApiKey(llm, apiKey) {
+            console.log(`Validating ${llm} API key...`);
+            // In a real implementation, you would make an API call to validate the key
+            // For now, we'll simulate this with a promise that resolves after a short delay
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    // Simulate API key validation (all keys are considered valid in this demo)
+                    resolve(true);
+                }, 500);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // LLM Selection
+            const llmCards = document.querySelectorAll('.llm-card');
+            let selectedLLM = null;
+            let selectedApiKey = null;
+
+            llmCards.forEach(card => {
+                card.addEventListener('click', async function() {
+                    // Remove selected class from all cards
+                    llmCards.forEach(c => c.classList.remove('selected'));
+
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+
+                    // Store selected LLM
+                    selectedLLM = this.getAttribute('data-llm');
+                    console.log('Selected LLM:', selectedLLM);
+
+                    // Get API key for selected LLM
+                    const apiKey = API_KEYS[selectedLLM];
+
+                    // Validate API key
+                    try {
+                        const isValid = await validateApiKey(selectedLLM, apiKey);
+                        if (isValid) {
+                            selectedApiKey = apiKey;
+                            console.log(`${selectedLLM} API key is valid.`);
+                        } else {
+                            console.warn(`${selectedLLM} API key is invalid. Falling back to Gemini.`);
+                            selectedLLM = 'gemini';
+                            selectedApiKey = API_KEYS.gemini;
+
+                            // Update UI to show Gemini is selected
+                            llmCards.forEach(c => c.classList.remove('selected'));
+                            document.querySelector('.llm-card[data-llm="gemini"]').classList.add('selected');
+
+                            // Show fallback message
+                            alert(`The ${selectedLLM} API key is not working. Falling back to Gemini.`);
+                        }
+                    } catch (error) {
+                        console.error('Error validating API key:', error);
+                        selectedLLM = 'gemini';
+                        selectedApiKey = API_KEYS.gemini;
+
+                        // Update UI to show Gemini is selected
+                        llmCards.forEach(c => c.classList.remove('selected'));
+                        document.querySelector('.llm-card[data-llm="gemini"]').classList.add('selected');
+
+                        // Show fallback message
+                        alert(`Error validating API key. Falling back to Gemini.`);
+                    }
+                });
+            });
+
+            // Tab Switching
+            const inputTabs = document.querySelectorAll('.input-tab');
+            const inputContents = document.querySelectorAll('.input-content');
+
+            inputTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and contents
+                    inputTabs.forEach(t => t.classList.remove('active'));
+                    inputContents.forEach(c => c.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+
+                    // Show corresponding content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + '-content').classList.add('active');
+                });
+            });
+
+            // File Upload Handling
+            const pdfFileInput = document.getElementById('pdf-file');
+            const fileNameDisplay = document.getElementById('file-name');
+
+            pdfFileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileNameDisplay.textContent = this.files[0].name;
+                    fileNameDisplay.style.display = 'block';
+                } else {
+                    fileNameDisplay.style.display = 'none';
+                }
+            });
+
+            // Drag and Drop for PDF
+            const fileUploadArea = document.querySelector('.file-upload-area');
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                fileUploadArea.classList.add('highlight');
+                fileUploadArea.style.borderColor = '#fff';
+                fileUploadArea.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            }
+
+            function unhighlight() {
+                fileUploadArea.classList.remove('highlight');
+                fileUploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                fileUploadArea.style.backgroundColor = 'transparent';
+            }
+
+            fileUploadArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0 && files[0].type === 'application/pdf') {
+                    pdfFileInput.files = files;
+                    fileNameDisplay.textContent = files[0].name;
+                    fileNameDisplay.style.display = 'block';
+                }
+            }
+
+            // Generate Quiz Button
+            const generateQuizBtn = document.getElementById('generate-quiz-btn');
+
+            generateQuizBtn.addEventListener('click', function() {
+                // Validate inputs
+                if (!selectedLLM) {
+                    alert('Please select an AI model');
+                    return;
+                }
+
+                if (!selectedApiKey) {
+                    alert('No valid API key available. Please select an AI model again.');
+                    return;
+                }
+
+                const activeTab = document.querySelector('.input-tab.active').getAttribute('data-tab');
+                let quizContent = '';
+                let pdfFile = null;
+
+                if (activeTab === 'topic') {
+                    quizContent = document.querySelector('.topic-input').value.trim();
+                    if (!quizContent) {
+                        alert('Please enter a topic');
+                        return;
+                    }
+                } else {
+                    pdfFile = pdfFileInput.files[0];
+                    if (!pdfFile) {
+                        alert('Please upload a PDF file');
+                        return;
+                    }
+                }
+
+                // Get quiz settings
+                const questionType = document.getElementById('question-type').value;
+                const difficulty = document.getElementById('difficulty').value;
+                const numQuestions = document.getElementById('num-questions').value;
+                const timeLimit = document.getElementById('time-limit').value;
+
+                // Store quiz settings in localStorage
+                const quizSettings = {
+                    llm: selectedLLM,
+                    apiKey: selectedApiKey,
+                    contentType: activeTab,
+                    content: quizContent,
+                    questionType: questionType,
+                    difficulty: difficulty,
+                    numQuestions: numQuestions,
+                    timeLimit: timeLimit
+                };
+
+                console.log(`Generating quiz using ${selectedLLM} with API key: ${selectedApiKey.substring(0, 10)}...`);
+                localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+
+                // If PDF file is selected, upload it first
+                if (pdfFile) {
+                    // Create a FormData object to send the file
+                    const formData = new FormData();
+                    formData.append('pdf', pdfFile);
+
+                    // Show loading state
+                    generateQuizBtn.textContent = 'Uploading PDF...';
+                    generateQuizBtn.disabled = true;
+
+                    // Upload the file to the server
+                    fetch('http://localhost:5000/api/upload-pdf', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('PDF uploaded successfully:', data);
+
+                        // Store the PDF ID in localStorage
+                        localStorage.setItem('pdfId', data.pdf_id);
+
+                        // Redirect to the quiz page
+                        window.location.href = 'quiz-play.html';
+                    })
+                    .catch(error => {
+                        console.error('Error uploading PDF:', error);
+                        alert('Error uploading PDF. Please try again.');
+
+                        // Reset button
+                        generateQuizBtn.textContent = 'Generate Quiz';
+                        generateQuizBtn.disabled = false;
+                    });
+                } else {
+                    // Redirect directly to the quiz page for topic-based quizzes
+                    window.location.href = 'quiz-play.html';
+                }
+            });
+
+            // Try to remove Spline credit (if possible)
+            setTimeout(function() {
+                try {
+                    const iframe = document.querySelector('.background-container iframe');
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const splineElements = iframeDoc.querySelectorAll('a[href*="spline"], div[class*="spline"], div[id*="spline"]');
+                    splineElements.forEach(el => el.style.display = 'none');
+
+                    // Additional attempt to remove any Spline branding
+                    const allElements = iframeDoc.querySelectorAll('*');
+                    allElements.forEach(el => {
+                        if (el.textContent && el.textContent.includes('Spline')) {
+                            el.style.display = 'none';
+                        }
+                    });
+                } catch(e) {
+                    console.log('Could not access iframe content due to same-origin policy');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

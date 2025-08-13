@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUIZERA - Global Leaderboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="quiz-styles.css">
+  <style>
+    .leaderboard-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      padding: 36px 30px 30px 30px;
+    }
+    .leaderboard-container h1 {
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 2em;
+    }
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .leaderboard-table th, .leaderboard-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      font-size: 1.08em;
+    }
+    .leaderboard-table th {
+      background: #f6f8fa;
+      font-weight: bold;
+    }
+    .leaderboard-table tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .leaderboard-table tr.top-score {
+      background: #e9f7ef;
+      font-weight: bold;
+      color: #2563eb;
+    }
+    .leaderboard-table tr.second-score {
+      background: #fff9e6;
+      font-weight: bold;
+      color: #d97706;
+    }
+    .leaderboard-table tr.third-score {
+      background: #f3f4f6;
+      font-weight: bold;
+      color: #4b5563;
+    }
+    .leaderboard-username {
+      font-weight: bold;
+      color: #2563eb;
+    }
+    .leaderboard-topic {
+      color: #888;
+      font-size: 0.98em;
+    }
+    .leaderboard-score {
+      color: #27ae60;
+      font-weight: bold;
+    }
+    .leaderboard-timestamp {
+      font-size: 0.93em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="leaderboard-container">
+    <h1>Global Leaderboard</h1>
+    <div style="text-align:center;margin-bottom:16px;">
+      <button id="home-btn" style="padding:8px 12px;margin-right:8px;">Play Quiz</button>
+      <button id="clear-btn" style="padding:8px 12px;margin-right:8px;">Clear Leaderboard</button>
+      <button id="export-btn" style="padding:8px 12px;margin-right:8px;">Export CSV</button>
+      <select id="topic-filter" style="padding:6px 8px;">
+        <option value="">All Topics</option>
+      </select>
+    </div>
+    <table class="leaderboard-table" id="leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>User</th>
+          <th>Score</th>
+          <th>Topic</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Leaderboard rows go here -->
+      </tbody>
+    </table>
+  </div>
+  <script src="leaderboard.js"></script>
+</body>
+</html>

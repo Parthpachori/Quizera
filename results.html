@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Results</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="results-styles.css">
+    <link rel="stylesheet" href="robot-component.css">
+    <script src="robot-component.js"></script>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="quiz.html">Quiz</a></li>
+                <li><a href="#" class="active">Results</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="results-container">
+        <h1>Quiz Results</h1>
+        <p>Great job completing the quiz! Here's how you did:</p>
+
+        <div class="score-container">
+            <div class="score-circle">
+                <div class="score-number">75%</div>
+                <div class="score-text">Score</div>
+            </div>
+
+            <div class="score-details">
+                <div class="detail-item">
+                    <span class="detail-label">Correct Answers:</span>
+                    <span class="detail-value">3/4</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Time Taken:</span>
+                    <span class="detail-value">2m 45s</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Difficulty:</span>
+                    <span class="detail-value">Medium</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="questions-review">
+            <h2>Questions Review</h2>
+
+            <div class="question-item correct">
+                <div class="question-header">
+                    <span class="question-number">Question 1</span>
+                    <span class="question-status">Correct</span>
+                </div>
+                <div class="question-content">
+                    <p class="question-text">What is the capital of France?</p>
+                    <p class="answer-text">Your answer: Paris</p>
+                </div>
+            </div>
+
+            <div class="question-item correct">
+                <div class="question-header">
+                    <span class="question-number">Question 2</span>
+                    <span class="question-status">Correct</span>
+                </div>
+                <div class="question-content">
+                    <p class="question-text">Which planet is known as the Red Planet?</p>
+                    <p class="answer-text">Your answer: Mars</p>
+                </div>
+            </div>
+
+            <div class="question-item incorrect">
+                <div class="question-header">
+                    <span class="question-number">Question 3</span>
+                    <span class="question-status">Incorrect</span>
+                </div>
+                <div class="question-content">
+                    <p class="question-text">What is the largest mammal?</p>
+                    <p class="answer-text">Your answer: Elephant</p>
+                    <p class="correct-answer">Correct answer: Blue Whale</p>
+                </div>
+            </div>
+
+            <div class="question-item correct">
+                <div class="question-header">
+                    <span class="question-number">Question 4</span>
+                    <span class="question-status">Correct</span>
+                </div>
+                <div class="question-content">
+                    <p class="question-text">Who wrote "Romeo and Juliet"?</p>
+                    <p class="answer-text">Your answer: William Shakespeare</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-actions">
+            <button class="action-btn retry-btn">Try Again</button>
+            <button class="action-btn new-quiz-btn">New Quiz</button>
+            <button class="action-btn dashboard-btn">View Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Mini robot will be added by the robot-component.js script -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+
+            // Button actions
+            const retryBtn = document.querySelector('.retry-btn');
+            const newQuizBtn = document.querySelector('.new-quiz-btn');
+            const dashboardBtn = document.querySelector('.dashboard-btn');
+
+            retryBtn.addEventListener('click', function() {
+                window.location.href = 'quiz.html';
+            });
+
+            newQuizBtn.addEventListener('click', function() {
+                window.location.href = 'upload.html';
+            });
+
+            dashboardBtn.addEventListener('click', function() {
+                window.location.href = 'dashboard.html';
+            });
+
+            // Save quiz results to localStorage for dashboard
+            const saveQuizResults = () => {
+                // Get quiz results from the page
+                const score = document.querySelector('.score-number').textContent;
+                const percentage = parseInt(score);
+                const correctAnswers = document.querySelector('.detail-value').textContent;
+                const [correct, total] = correctAnswers.split('/').map(num => parseInt(num.trim()));
+                const timeTaken = document.querySelectorAll('.detail-value')[1].textContent;
+                const difficulty = document.querySelectorAll('.detail-value')[2].textContent;
+
+                // Create a unique ID for this quiz result
+                const quizId = 'quizResult_' + Date.now();
+
+                // Create the quiz result object
+                const quizResult = {
+                    pdfName: 'Quiz ' + new Date().toLocaleDateString(),
+                    date: new Date().toISOString(),
+                    format: 'Multiple Choice',
+                    difficulty: difficulty,
+                    percentage: percentage,
+                    score: correct,
+                    total: total,
+                    timeTaken: timeTaken
+                };
+
+                // Save to localStorage
+                localStorage.setItem(quizId, JSON.stringify(quizResult));
+            };
+
+            // Save the current quiz results
+            saveQuizResults();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - 3D Robot</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Override scrolling behavior */
+        html, body {
+            height: 100% !important;
+            overflow: hidden !important;
+            margin: 0;
+            padding: 0;
+        }
+
+        #robot-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #1a2b3c, #2a3b4c);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #2a3b4c, #3a4b5c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a2b3c;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 1s ease;
+        }
+
+        .loading-text {
+            font-family: 'Azonix', sans-serif;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #00ccff;
+            transition: width 0.5s ease;
+        }
+
+        /* Dark theme styles */
+        body.dark-theme .control-btn {
+            background: linear-gradient(135deg, #0a1a2a, #0a1a2a);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        body.dark-theme .control-btn:hover {
+            background: linear-gradient(135deg, #0a1a2a, #152a3a);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-text">Loading 3D Robot...</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        Back to Home
+    </a>
+
+    <div id="robot-container"></div>
+
+    <div class="controls">
+        <button class="control-btn" id="rotate-btn">Rotate</button>
+        <button class="control-btn" id="blink-btn">Blink</button>
+        <button class="control-btn" id="bounce-btn">Bounce</button>
+        <button class="control-btn" id="reset-btn">Reset</button>
+    </div>
+
+    <!-- Load Three.js library -->
+    <script src="https://threejs.org/build/three.min.js" onerror="console.error('Failed to load Three.js library')"></script>
+
+    <!-- Load our robot model script -->
+    <script src="robot-model.js" onerror="console.error('Failed to load robot-model.js')"></script>
+
+    <!-- Fallback in case Three.js fails to load -->
+    <script>
+        window.addEventListener('load', function() {
+            if (typeof THREE === 'undefined') {
+                console.warn('Three.js not loaded, attempting to load from alternative CDN');
+                var script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+                script.onload = function() {
+                    console.log('Three.js loaded from alternative source');
+                    // Try to initialize robot again
+                    if (typeof init === 'function') {
+                        try {
+                            init();
+                        } catch (e) {
+                            console.error('Error initializing robot after fallback:', e);
+                        }
+                    }
+                };
+                script.onerror = function() {
+                    console.error('Failed to load Three.js from alternative source');
+                };
+                document.head.appendChild(script);
+            }
+        });
+    </script>
+
+    <script>
+        // Simulate loading progress
+        const loadingBar = document.getElementById('loading-bar');
+        const loadingScreen = document.getElementById('loading-screen');
+
+        let progress = 0;
+        const loadingInterval = setInterval(() => {
+            progress += Math.random() * 10;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(loadingInterval);
+
+                // Hide loading screen after a short delay
+                setTimeout(() => {
+                    loadingScreen.style.opacity = 0;
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 1000);
+                }, 500);
+            }
+            loadingBar.style.width = progress + '%';
+        }, 200);
+
+        // Button functionality
+        document.getElementById('rotate-btn').addEventListener('click', function() {
+            if (window.robot) {
+                // Create a rotation animation
+                let rotateTime = 0;
+                const rotateInterval = setInterval(() => {
+                    rotateTime += 0.05;
+                    robot.rotation.y += 0.1;
+
+                    if (rotateTime > 6.28) { // 2*PI
+                        clearInterval(rotateInterval);
+                    }
+                }, 16);
+            }
+        });
+
+        document.getElementById('blink-btn').addEventListener('click', function() {
+            if (window.robot) {
+                // Create a blinking animation
+                let blinkCount = 0;
+                const blinkInterval = setInterval(() => {
+                    if (blinkCount % 2 === 0) {
+                        // Blink eyes
+                        if (robot.userData && robot.userData.leftEyeGroup && robot.userData.rightEyeGroup) {
+                            robot.userData.leftEyeGroup.scale.y = 0.1;
+                            robot.userData.rightEyeGroup.scale.y = 0.1;
+                        }
+                    } else {
+                        // Open eyes
+                        if (robot.userData && robot.userData.leftEyeGroup && robot.userData.rightEyeGroup) {
+                            robot.userData.leftEyeGroup.scale.y = 0.8;
+                            robot.userData.rightEyeGroup.scale.y = 0.8;
+                        }
+                    }
+
+                    blinkCount++;
+                    if (blinkCount > 5) {
+                        clearInterval(blinkInterval);
+                    }
+                }, 200);
+            }
+        });
+
+        document.getElementById('bounce-btn').addEventListener('click', function() {
+            if (window.robot) {
+                // Create a bounce animation
+                const originalY = robot.position.y;
+
+                // Bounce animation
+                let bounceTime = 0;
+                const bounceInterval = setInterval(() => {
+                    bounceTime += 0.1;
+
+                    // Bouncing motion
+                    robot.position.y = originalY + Math.abs(Math.sin(bounceTime * 3)) * 0.5;
+
+                    if (bounceTime > 6.28) { // 2*PI
+                        clearInterval(bounceInterval);
+                        robot.position.y = originalY;
+                    }
+                }, 16);
+            }
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', function() {
+            if (window.robot) {
+                robot.rotation.set(0, 0, 0);
+                robot.position.set(0, 0, 0);
+
+                // Reset eye scale
+                if (robot.userData && robot.userData.leftEyeGroup && robot.userData.rightEyeGroup) {
+                    robot.userData.leftEyeGroup.scale.set(0.8, 0.8, 0.8);
+                    robot.userData.rightEyeGroup.scale.set(0.8, 0.8, 0.8);
+                }
+            }
+        });
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+    </script>
+</body>
+</html>

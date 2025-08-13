@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Upload PDF</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="upload-styles.css">
+    <link rel="stylesheet" href="animated-bg.css">
+    <script src="animated-bg.js"></script>
+    <script src="quiz-agent.js"></script>
+    <style>
+        /* Center the upload container */
+        .upload-container {
+            margin: 120px auto 40px;
+            max-width: 600px;
+        }
+
+        /* Media query for smaller screens */
+        @media (max-width: 768px) {
+            .upload-container {
+                margin: 100px 20px 40px;
+            }
+        }
+
+
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html" class="active">Upload</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Animated background will be added by JavaScript -->
+
+    <div class="upload-container">
+        <h1>Generate Quiz from PDF</h1>
+        <p>Upload your PDF file and customize your quiz options below.</p>
+
+        <div class="upload-area" id="drop-area">
+            <div class="upload-icon">
+                <img src="upload.svg" alt="Upload" class="upload-icon-img">
+            </div>
+            <p class="upload-text">Drag & Drop your PDF here</p>
+            <p class="upload-text-small">or</p>
+            <label for="file-input" class="upload-btn">Browse Files</label>
+            <input type="file" id="file-input" accept=".pdf" style="display: none;">
+            <p class="file-info" id="file-info">No file selected</p>
+        </div>
+
+
+
+        <div class="upload-actions">
+            <button class="action-btn cancel-btn" id="cancel-btn">Cancel</button>
+            <button class="action-btn upload-action-btn" id="upload-btn" disabled>Generate Quiz</button>
+        </div>
+
+        <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar" id="progress-bar"></div>
+            <p class="progress-text" id="progress-text">Uploading: 0%</p>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('file-input');
+            const fileInfo = document.getElementById('file-info');
+            const uploadBtn = document.getElementById('upload-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const uploadProgress = document.getElementById('upload-progress');
+
+            let selectedFile = null;
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            // Handle selected files
+            fileInput.addEventListener('change', handleFiles);
+
+            // Handle upload button
+            uploadBtn.addEventListener('click', uploadFile);
+
+            // Handle cancel button
+            cancelBtn.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function highlight() {
+                dropArea.classList.add('highlight');
+            }
+
+            function unhighlight() {
+                dropArea.classList.remove('highlight');
+            }
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            function handleFiles(e) {
+                let files;
+                if (e.dataTransfer) {
+                    files = e.dataTransfer.files;
+                } else if (e.target) {
+                    files = e.target.files;
+                }
+
+                if (files && files.length > 0) {
+                    selectedFile = files[0];
+
+                    if (selectedFile.type === 'application/pdf') {
+                        fileInfo.textContent = `Selected: ${selectedFile.name}`;
+                        uploadBtn.disabled = false;
+                    } else {
+                        fileInfo.textContent = 'Please select a PDF file';
+                        uploadBtn.disabled = true;
+                        selectedFile = null;
+                    }
+                }
+            }
+
+            async function uploadFile() {
+                if (!selectedFile) {
+                    return;
+                }
+
+                // Show progress bar
+                uploadProgress.style.display = 'block';
+
+                // Disable the upload button to prevent multiple submissions
+                uploadBtn.disabled = true;
+
+                // Set initial progress
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Uploading: 0%';
+
+                try {
+                    // Simulate upload progress
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += 5;
+                        if (progress > 90) {
+                            clearInterval(interval);
+                        }
+                        progressBar.style.width = `${progress}%`;
+                        progressText.textContent = `Uploading: ${progress}%`;
+                    }, 200);
+
+                    // Store PDF information in localStorage
+                    const pdfData = {
+                        fileName: selectedFile.name,
+                        fileSize: selectedFile.size,
+                        fileType: selectedFile.type,
+                        uploadDate: new Date().toISOString()
+                    };
+                    localStorage.setItem('pdfData', JSON.stringify(pdfData));
+
+                    // Upload the PDF to the server
+                    console.log('Uploading PDF to server...');
+
+                    // Create a FormData object to send the file
+                    const formData = new FormData();
+                    formData.append('pdf', selectedFile);
+
+                    // Upload the file to the server
+                    fetch('http://localhost:5000/api/upload-pdf', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('PDF uploaded successfully:', data);
+
+                        // Complete the progress
+                        clearInterval(interval);
+                        progressBar.style.width = '100%';
+                        progressText.textContent = 'PDF Uploaded Successfully!';
+
+                        // Store the PDF ID in localStorage
+                        localStorage.setItem('pdfId', data.pdf_id);
+
+                        // Redirect to the quiz mood selection page
+                        setTimeout(() => {
+                            window.location.href = 'quiz-mood.html';
+                        }, 500);
+                    })
+                    .catch(error => {
+                        console.error('Error uploading PDF:', error);
+                        progressText.textContent = 'Error: ' + error.message;
+                        progressBar.style.width = '100%';
+                        progressBar.style.backgroundColor = '#ff3333';
+
+                        // If server is not running, use client-side simulation
+                        console.log('Falling back to client-side simulation');
+                        setTimeout(() => {
+                            progressBar.style.backgroundColor = '#4CAF50';
+                            progressText.textContent = 'PDF Uploaded Successfully! (Simulated)';
+
+                            // Redirect to the quiz mood selection page
+                            setTimeout(() => {
+                                window.location.href = 'quiz-mood.html';
+                            }, 500);
+                        }, 1000);
+                    });
+                } catch (error) {
+                    console.error('Error uploading PDF:', error);
+                    progressText.textContent = 'Error: ' + error.message;
+                    progressBar.style.width = '100%';
+                    progressBar.style.backgroundColor = '#ff3333';
+
+                    // Re-enable the upload button
+                    uploadBtn.disabled = false;
+                }
+            }
+
+            // Function to create simulated quiz data for testing
+            function createSimulatedQuiz(quizType, difficulty, numQuestions) {
+                const questions = [];
+                const difficultyText = difficulty === '1' ? 'easy' : (difficulty === '3' ? 'hard' : 'medium');
+
+                // Generate questions based on quiz type
+                for (let i = 0; i < numQuestions; i++) {
+                    let question;
+
+                    switch (quizType) {
+                        case '1': // MCQs
+                            question = {
+                                question: `Sample ${difficultyText} multiple choice question #${i+1}?`,
+                                options: [
+                                    "Option A - This is a sample answer",
+                                    "Option B - This is another sample answer",
+                                    "Option C - This is the correct answer",
+                                    "Option D - This is the last sample answer"
+                                ],
+                                answer: "Option C - This is the correct answer",
+                                explanation: `This is an explanation for the ${difficultyText} multiple choice question #${i+1}.`
+                            };
+                            break;
+
+                        case '2': // Fill in the blanks
+                            question = {
+                                question: `This is a sample ${difficultyText} fill in the blank question #${i+1}. The capital of France is _____.`,
+                                answer: "Paris",
+                                explanation: `Paris is the capital of France. This is a ${difficultyText} level question.`
+                            };
+                            break;
+
+                        case '3': // True/False
+                            question = {
+                                question: `Sample ${difficultyText} true/false statement #${i+1}: The Earth is flat.`,
+                                answer: "False",
+                                explanation: `The Earth is approximately spherical in shape. This is a ${difficultyText} level question.`
+                            };
+                            break;
+
+                        case '4': // Short answer
+                            question = {
+                                question: `Sample ${difficultyText} short answer question #${i+1}: Briefly explain photosynthesis.`,
+                                answer: "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with carbon dioxide and water.",
+                                explanation: `This is a ${difficultyText} level short answer question about a basic biological process.`
+                            };
+                            break;
+
+                        case '5': // Long answer
+                            question = {
+                                question: `Sample ${difficultyText} long answer question #${i+1}: Discuss the causes and effects of climate change.`,
+                                answer: "Climate change is primarily caused by human activities such as burning fossil fuels, deforestation, and industrial processes that release greenhouse gases into the atmosphere. These gases trap heat and lead to global warming. Effects include rising sea levels, extreme weather events, disruption of ecosystems, and threats to food security.",
+                                explanation: `This is a ${difficultyText} level long answer question that requires detailed knowledge of environmental science.`
+                            };
+                            break;
+
+                        case '6': // Mix of all types
+                            // Determine question type based on index
+                            const typeIndex = i % 5;
+                            if (typeIndex === 0) {
+                                question = {
+                                    question: `Sample ${difficultyText} multiple choice question #${i+1}?`,
+                                    options: [
+                                        "Option A - This is a sample answer",
+                                        "Option B - This is another sample answer",
+                                        "Option C - This is the correct answer",
+                                        "Option D - This is the last sample answer"
+                                    ],
+                                    answer: "Option C - This is the correct answer",
+                                    explanation: `This is an explanation for the ${difficultyText} multiple choice question #${i+1}.`
+                                };
+                            } else if (typeIndex === 1) {
+                                question = {
+                                    question: `This is a sample ${difficultyText} fill in the blank question #${i+1}. The capital of France is _____.`,
+                                    answer: "Paris",
+                                    explanation: `Paris is the capital of France. This is a ${difficultyText} level question.`
+                                };
+                            } else if (typeIndex === 2) {
+                                question = {
+                                    question: `Sample ${difficultyText} true/false statement #${i+1}: The Earth is flat.`,
+                                    answer: "False",
+                                    explanation: `The Earth is approximately spherical in shape. This is a ${difficultyText} level question.`
+                                };
+                            } else if (typeIndex === 3) {
+                                question = {
+                                    question: `Sample ${difficultyText} short answer question #${i+1}: Briefly explain photosynthesis.`,
+                                    answer: "Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods with carbon dioxide and water.",
+                                    explanation: `This is a ${difficultyText} level short answer question about a basic biological process.`
+                                };
+                            } else {
+                                question = {
+                                    question: `Sample ${difficultyText} long answer question #${i+1}: Discuss the causes and effects of climate change.`,
+                                    answer: "Climate change is primarily caused by human activities such as burning fossil fuels, deforestation, and industrial processes that release greenhouse gases into the atmosphere. These gases trap heat and lead to global warming. Effects include rising sea levels, extreme weather events, disruption of ecosystems, and threats to food security.",
+                                    explanation: `This is a ${difficultyText} level long answer question that requires detailed knowledge of environmental science.`
+                                };
+                            }
+                            break;
+
+                        default:
+                            question = {
+                                question: `Sample question #${i+1}?`,
+                                options: [
+                                    "Option A - This is a sample answer",
+                                    "Option B - This is another sample answer",
+                                    "Option C - This is the correct answer",
+                                    "Option D - This is the last sample answer"
+                                ],
+                                answer: "Option C - This is the correct answer",
+                                explanation: "This is a sample explanation."
+                            };
+                    }
+
+                    questions.push(question);
+                }
+
+                return { questions };
+            }
+        });
+    </script>
+</body>
+</html>

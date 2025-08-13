@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Interactive Quiz Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Make sure the popup appears on hover over the wrapper, not just the icon */
+        .icon-wrapper:hover .popup-box {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Style for disabled button */
+        .play-btn[disabled] {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #888;
+        }
+
+        /* Style for bottom-left corner */
+        .corner-icon.bottom-left {
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="background-text">QUIZERA</div>
+
+        <!-- Top Left Icon (Upload) -->
+        <div class="corner-icon top-left">
+            <div class="icon-wrapper" id="upload-icon">
+                <img src="upload.svg" alt="Upload" class="side-icon">
+                <div class="popup-box" id="upload-popup">
+                    <h3>Upload PDF</h3>
+                    <p>Upload your PDF file to generate quiz questions automatically.</p>
+                    <a href="upload.html" class="upload-btn">Choose PDF</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Right Icon (Info) -->
+        <div class="corner-icon top-right">
+            <div class="icon-wrapper" id="info-icon">
+                <img src="info.svg" alt="Info" class="side-icon">
+                <div class="popup-box info-popup" id="info-popup">
+                    <h3>Instructions</h3>
+                    <p>Welcome to QUIZERA! Here's how to use our platform:</p>
+                    <ul class="instruction-list">
+                        <li><strong>Upload:</strong> Use the upload icon to add PDF files for quiz generation.</li>
+                        <li><strong>Game Mode:</strong> Click the game controller icon to start an interactive quiz game.</li>
+                        <li><strong>Theme:</strong> Toggle between light and dark mode using the bottom right icon.</li>
+                    </ul>
+                    <p>Explore our platform and enhance your learning experience!</p>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Bottom Left Icon (Game Controller) -->
+        <div class="corner-icon bottom-left">
+            <div class="icon-wrapper" id="game-controller-icon">
+                <img src="perfect-match.svg" alt="Game Controller" class="side-icon">
+                <div class="popup-box" id="game-controller-popup">
+                    <h3>Game Mode</h3>
+                    <p>Start an interactive quiz game with your study materials.</p>
+                    <a href="quiz-game.html" class="upload-btn">Play Game</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Right Icon (Theme Toggle) -->
+        <div class="corner-icon bottom-right">
+            <div class="icon-wrapper" id="theme-icon">
+                <img src="night-mode.svg" alt="Theme Toggle" class="side-icon">
+                <div class="popup-box theme-popup" id="theme-popup">
+                    <h3>Theme Settings</h3>
+                    <p>Choose your preferred display mode:</p>
+                    <div class="theme-options">
+                        <button class="theme-btn active" id="light-theme-btn">Light Mode</button>
+                        <button class="theme-btn" id="dark-theme-btn">Dark Mode</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="model-container">
+            <iframe src='https://my.spline.design/nexbotrobotcharacterconcept-FD5LcQHiojMz9UngPdLl9EQh/?hide=1' frameborder='0' width='100%' height='100%'></iframe>
+        </div>
+
+        <!-- Multiple overlays to ensure Spline credit is hidden -->
+        <div class="spline-credit-overlay"></div>
+        <div class="spline-credit-overlay-2"></div>
+        <div class="spline-credit-overlay-3"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle icon hover effects
+            const iconWrappers = document.querySelectorAll('.icon-wrapper');
+            iconWrappers.forEach(wrapper => {
+                wrapper.addEventListener('mouseenter', function() {
+                    const popup = this.querySelector('.popup-box');
+                    if (popup) {
+                        popup.style.display = 'block';
+                        setTimeout(() => {
+                            popup.style.opacity = '1';
+                            popup.style.transform = 'translateX(0)';
+                        }, 10);
+                    }
+                });
+
+                wrapper.addEventListener('mouseleave', function() {
+                    const popup = this.querySelector('.popup-box');
+                    if (popup) {
+                        popup.style.opacity = '0';
+
+                        // Check which popup this is and apply the appropriate transform
+                        if (popup.id === 'game-controller-popup') {
+                            popup.style.transform = 'translateX(-10px)';
+                        } else if (popup.classList.contains('theme-popup')) {
+                            popup.style.transform = 'translateY(10px)';
+                        } else if (popup.classList.contains('info-popup')) {
+                            popup.style.transform = 'translateX(10px)';
+                        } else {
+                            popup.style.transform = 'translateY(10px)';
+                        }
+
+                        setTimeout(() => {
+                            popup.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+
+
+
+            // Handle theme toggle
+            const lightThemeBtn = document.getElementById('light-theme-btn');
+            const darkThemeBtn = document.getElementById('dark-theme-btn');
+
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                lightThemeBtn.classList.remove('active');
+                darkThemeBtn.classList.add('active');
+            }
+
+            // Light theme button
+            lightThemeBtn.addEventListener('click', function() {
+                document.body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light');
+                lightThemeBtn.classList.add('active');
+                darkThemeBtn.classList.remove('active');
+            });
+
+            // Dark theme button
+            darkThemeBtn.addEventListener('click', function() {
+                document.body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark');
+                darkThemeBtn.classList.add('active');
+                lightThemeBtn.classList.remove('active');
+            });
+
+            // Try to remove Spline credit (if possible)
+            setTimeout(function() {
+                try {
+                    const iframe = document.querySelector('.model-container iframe');
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const splineElements = iframeDoc.querySelectorAll('a[href*="spline"]');
+                    splineElements.forEach(el => el.style.display = 'none');
+                } catch(e) {
+                    console.log('Could not access iframe content due to same-origin policy');
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

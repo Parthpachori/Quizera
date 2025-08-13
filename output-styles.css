@@ -1,0 +1,110 @@
+body {
+    background: linear-gradient(135deg, #f8fafc 0%, #c9e7fa 100%);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.output-container {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+    max-width: 700px;
+    margin: 50px auto 0 auto;
+    padding: 2.5rem 2.5rem 1.5rem 2.5rem;
+    text-align: center;
+    animation: fadeIn 1s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.output-container h1 {
+    font-size: 2.5rem;
+    color: #1e3a8a;
+    margin-bottom: 0.5rem;
+    letter-spacing: 1px;
+}
+
+.output-container p {
+    color: #3b3b3b;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+#pdf-output-details {
+    margin: 2rem 0 2.5rem 0;
+    text-align: left;
+    background: #f1f8fe;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.06);
+}
+
+#pdf-output-details h2 {
+    color: #2563eb;
+    margin-bottom: 1rem;
+}
+
+#pdf-output-details ol {
+    padding-left: 1.5rem;
+}
+
+#pdf-output-details li {
+    margin-bottom: 0.7rem;
+    font-size: 1.1rem;
+    color: #22223b;
+    line-height: 1.6;
+}
+
+#pdf-output-details ul {
+    margin: 0.3rem 0 0.7rem 0.7rem;
+    padding-left: 1.2rem;
+    list-style-type: disc;
+}
+
+#pdf-output-details ul li {
+    color: #3a5a96;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.output-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.action-btn {
+    background: linear-gradient(90deg, #2563eb 0%, #38b6ff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.8rem 2.2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.10);
+    transition: background 0.2s, transform 0.2s;
+}
+.action-btn:hover {
+    background: linear-gradient(90deg, #38b6ff 0%, #2563eb 100%);
+    transform: translateY(-2px) scale(1.04);
+}
+
+@media (max-width: 600px) {
+    .output-container {
+        padding: 1.2rem 0.6rem 1rem 0.6rem;
+    }
+    #pdf-output-details {
+        padding: 0.7rem 0.5rem;
+    }
+    .action-btn {
+        padding: 0.7rem 1.2rem;
+        font-size: 1rem;
+    }
+}

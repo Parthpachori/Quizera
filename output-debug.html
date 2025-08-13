@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Output Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f6f9fc; color: #222; padding: 2em; }
+        .option-badge {
+            display: inline-block;
+            background: #38b6ff;
+            color: #fff;
+            border-radius: 50%;
+            width: 1.7em;
+            height: 1.7em;
+            text-align: center;
+            line-height: 1.7em;
+            margin-right: 0.5em;
+            font-weight: bold;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>QUIZERA Output Debug</h1>
+    <div id="quiz-questions"></div>
+    <script>
+        // Only use localStorage, no fetch, no external JS
+        try {
+            const localQuestions = localStorage.getItem('quizera_quiz_questions');
+            if (localQuestions) {
+                const questions = JSON.parse(localQuestions);
+                let html = '<h2>📝 Generated Quiz Questions:</h2><ol>';
+                questions.forEach((q, idx) => {
+                    html += `<li><strong>Q${idx+1}: ${q.question}</strong><ul>`;
+                    q.options.forEach((opt, i) => {
+                        html += `<li><span class='option-badge'>${String.fromCharCode(65+i)}</span> ${opt}</li>`;
+                    });
+                    html += '</ul></li>';
+                });
+                html += '</ol>';
+                document.getElementById('quiz-questions').innerHTML = html;
+            } else {
+                document.getElementById('quiz-questions').innerHTML = '<p>No quiz questions found in localStorage.</p>';
+            }
+        } catch (e) {
+            document.getElementById('quiz-questions').innerHTML = '<p>Error reading quiz questions: ' + e + '</p>';
+        }
+    </script>
+</body>
+</html>

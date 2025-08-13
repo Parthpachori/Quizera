@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="quiz-styles.css">
+    <link rel="stylesheet" href="animated-bg.css">
+    <script src="animated-bg.js"></script>
+    <script src="quiz-agent.js"></script>
+    <style>
+        /* Override scrolling behavior */
+        html, body {
+            height: auto !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Additional styles for different question types */
+        .fill-blank {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .fill-blank input {
+            border: none;
+            border-bottom: 2px solid #1a2b3c;
+            background-color: transparent;
+            padding: 5px;
+            margin: 0 5px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            color: #333;
+            width: 150px;
+        }
+
+        /* True/False styling */
+        .true-false-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .true-false-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .true-false-option:hover {
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Short/Long answer styling */
+        .text-answer {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            color: #333;
+            resize: vertical;
+        }
+
+        .short-answer {
+            height: 80px;
+        }
+
+        .long-answer {
+            height: 150px;
+        }
+
+        /* Explanation container */
+        #explanation-container {
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #1a2b3c;
+        }
+
+        #explanation-container h3 {
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #1a2b3c;
+            margin-bottom: 10px;
+        }
+
+        #explanation-text {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Feedback container */
+        #feedback-container {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #feedback-container h3 {
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #feedback-text {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.7);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+
+        #submit-feedback {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #1a2b3c, #2a3b4c);
+            color: white;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 6px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="#" class="active">Quiz</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="quiz-container">
+        <h1>Your Quiz</h1>
+        <p>Answer the following questions based on the uploaded content.</p>
+
+        <div class="quiz-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p class="progress-text">Question <span id="current-question">1</span> of <span id="total-questions">0</span></p>
+        </div>
+
+        <div class="question-container" id="question-container">
+            <h2 id="question-text">Loading question...</h2>
+
+            <div class="options-container" id="options-container">
+                <!-- Options will be added here by JavaScript -->
+            </div>
+        </div>
+
+        <div id="explanation-container" style="display: none;">
+            <h3>Explanation</h3>
+            <p id="explanation-text"></p>
+        </div>
+
+        <div class="quiz-actions">
+            <button class="action-btn prev-btn" id="prev-btn" disabled>Previous</button>
+            <button class="action-btn next-btn" id="next-btn">Next</button>
+            <button class="action-btn submit-btn" id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+
+        <div id="feedback-container" style="display: none;">
+            <h3>How was this quiz?</h3>
+            <textarea id="feedback-text" placeholder="Provide feedback to improve future quizzes..."></textarea>
+            <button id="submit-feedback">Submit Feedback</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+
+            // Get quiz data from localStorage
+            const quizData = JSON.parse(localStorage.getItem('currentQuiz') || '{"questions":[]}');
+            const questions = quizData.questions || [];
+
+            // Set up variables
+            let currentQuestionIndex = 0;
+            const userAnswers = new Array(questions.length).fill(null);
+            let quizSubmitted = false;
+
+            // Get DOM elements
+            const currentQuestionSpan = document.getElementById('current-question');
+            const totalQuestionsSpan = document.getElementById('total-questions');
+            const progressFill = document.getElementById('progress-fill');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const explanationContainer = document.getElementById('explanation-container');
+            const explanationText = document.getElementById('explanation-text');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const feedbackContainer = document.getElementById('feedback-container');
+
+            // Initialize the quiz
+            function initQuiz() {
+                if (questions.length === 0) {
+                    questionText.textContent = "No quiz data found. Please upload a PDF to generate a quiz.";
+                    return;
+                }
+
+                totalQuestionsSpan.textContent = questions.length;
+                showQuestion(0);
+
+                // Show submit button on the last question
+                if (questions.length === 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'inline-block';
+                }
+            }
+
+            // Show a specific question
+            function showQuestion(index) {
+                const question = questions[index];
+                if (!question) return;
+
+                // Update progress
+                currentQuestionIndex = index;
+                currentQuestionSpan.textContent = index + 1;
+                progressFill.style.width = `${((index + 1) / questions.length) * 100}%`;
+
+                // Update question text
+                questionText.textContent = question.question;
+
+                // Clear options container
+                optionsContainer.innerHTML = '';
+
+                // Hide explanation initially
+                explanationContainer.style.display = 'none';
+
+                // Determine question type and render appropriate UI
+                if (question.options && Array.isArray(question.options)) {
+                    // Multiple choice question
+                    renderMultipleChoice(question, userAnswers[index]);
+                } else if (question.question.includes('_____')) {
+                    // Fill in the blanks
+                    renderFillInBlanks(question, userAnswers[index]);
+                } else if (question.answer === 'True' || question.answer === 'False') {
+                    // True/False question
+                    renderTrueFalse(question, userAnswers[index]);
+                } else if (question.question.toLowerCase().includes('explain') ||
+                           question.question.toLowerCase().includes('describe') ||
+                           question.question.toLowerCase().includes('discuss')) {
+                    // Long answer question
+                    renderLongAnswer(question, userAnswers[index]);
+                } else {
+                    // Short answer question
+                    renderShortAnswer(question, userAnswers[index]);
+                }
+
+                // Update button states
+                prevBtn.disabled = index === 0;
+                nextBtn.style.display = index === questions.length - 1 ? 'none' : 'inline-block';
+                submitBtn.style.display = index === questions.length - 1 ? 'inline-block' : 'none';
+
+                // Show explanation if quiz is submitted
+                if (quizSubmitted) {
+                    showExplanation(index);
+                }
+            }
+
+            // Render multiple choice question
+            function renderMultipleChoice(question, userAnswer) {
+                question.options.forEach((option, i) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'option';
+                    optionDiv.textContent = option;
+
+                    // Mark selected option
+                    if (userAnswer === i) {
+                        optionDiv.classList.add('selected');
+                    }
+
+                    // Mark correct/incorrect if quiz is submitted
+                    if (quizSubmitted) {
+                        if (option === question.answer) {
+                            optionDiv.classList.add('correct');
+                        } else if (userAnswer === i && option !== question.answer) {
+                            optionDiv.classList.add('incorrect');
+                        }
+                    }
+
+                    // Add click event if quiz is not submitted
+                    if (!quizSubmitted) {
+                        optionDiv.addEventListener('click', () => {
+                            selectOption(i);
+                        });
+                    }
+
+                    optionsContainer.appendChild(optionDiv);
+                });
+            }
+
+            // Render fill in the blanks question
+            function renderFillInBlanks(question, userAnswer) {
+                const parts = question.question.split('_____');
+                const fillBlankElement = document.createElement('div');
+                fillBlankElement.className = 'fill-blank';
+
+                let html = '';
+                for (let i = 0; i < parts.length; i++) {
+                    html += parts[i];
+                    if (i < parts.length - 1) {
+                        const value = userAnswer ? userAnswer[i] || '' : '';
+                        const disabled = quizSubmitted ? 'disabled' : '';
+                        html += `<input type="text" class="blank-input" data-index="${i}" value="${value}" ${disabled}>`;
+                    }
+                }
+
+                fillBlankElement.innerHTML = html;
+                optionsContainer.appendChild(fillBlankElement);
+
+                // Add event listeners to inputs
+                if (!quizSubmitted) {
+                    const inputs = fillBlankElement.querySelectorAll('input');
+                    inputs.forEach(input => {
+                        input.addEventListener('input', () => {
+                            const blankAnswers = [];
+                            inputs.forEach(inp => {
+                                blankAnswers.push(inp.value.trim());
+                            });
+                            userAnswers[currentQuestionIndex] = blankAnswers;
+                        });
+                    });
+                }
+
+                // Show correct answers if quiz is submitted
+                if (quizSubmitted) {
+                    const correctAnswers = Array.isArray(question.answer) ?
+                                          question.answer :
+                                          [question.answer];
+
+                    const inputs = fillBlankElement.querySelectorAll('input');
+                    inputs.forEach((input, i) => {
+                        const isCorrect = input.value.toLowerCase() === correctAnswers[i].toLowerCase();
+                        input.style.borderBottomColor = isCorrect ? '#28a745' : '#dc3545';
+                        input.style.backgroundColor = isCorrect ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+
+                        // Add correct answer as placeholder if wrong
+                        if (!isCorrect) {
+                            input.placeholder = correctAnswers[i];
+                        }
+                    });
+                }
+            }
+
+            // Render true/false question
+            function renderTrueFalse(question, userAnswer) {
+                const tfContainer = document.createElement('div');
+                tfContainer.className = 'true-false-options';
+
+                const trueOption = document.createElement('div');
+                trueOption.className = 'true-false-option';
+                trueOption.textContent = 'True';
+
+                const falseOption = document.createElement('div');
+                falseOption.className = 'true-false-option';
+                falseOption.textContent = 'False';
+
+                // Mark selected option
+                if (userAnswer === 'True') {
+                    trueOption.classList.add('selected');
+                } else if (userAnswer === 'False') {
+                    falseOption.classList.add('selected');
+                }
+
+                // Mark correct/incorrect if quiz is submitted
+                if (quizSubmitted) {
+                    if (question.answer === 'True') {
+                        trueOption.classList.add('correct');
+                        if (userAnswer === 'False') {
+                            falseOption.classList.add('incorrect');
+                        }
+                    } else {
+                        falseOption.classList.add('correct');
+                        if (userAnswer === 'True') {
+                            trueOption.classList.add('incorrect');
+                        }
+                    }
+                }
+
+                // Add click events if quiz is not submitted
+                if (!quizSubmitted) {
+                    trueOption.addEventListener('click', () => {
+                        userAnswers[currentQuestionIndex] = 'True';
+                        trueOption.classList.add('selected');
+                        falseOption.classList.remove('selected');
+                    });
+
+                    falseOption.addEventListener('click', () => {
+                        userAnswers[currentQuestionIndex] = 'False';
+                        falseOption.classList.add('selected');
+                        trueOption.classList.remove('selected');
+                    });
+                }
+
+                tfContainer.appendChild(trueOption);
+                tfContainer.appendChild(falseOption);
+                optionsContainer.appendChild(tfContainer);
+            }
+
+            // Render short answer question
+            function renderShortAnswer(question, userAnswer) {
+                const textareaElement = document.createElement('textarea');
+                textareaElement.className = 'text-answer short-answer';
+                textareaElement.placeholder = 'Type your answer here...';
+                textareaElement.value = userAnswer || '';
+
+                if (quizSubmitted) {
+                    textareaElement.disabled = true;
+
+                    // Add model answer below
+                    const modelAnswer = document.createElement('div');
+                    modelAnswer.className = 'model-answer';
+                    modelAnswer.innerHTML = `<h4>Model Answer:</h4><p>${question.answer}</p>`;
+                    optionsContainer.appendChild(modelAnswer);
+                } else {
+                    textareaElement.addEventListener('input', () => {
+                        userAnswers[currentQuestionIndex] = textareaElement.value;
+                    });
+                }
+
+                optionsContainer.appendChild(textareaElement);
+            }
+
+            // Render long answer question
+            function renderLongAnswer(question, userAnswer) {
+                const textareaElement = document.createElement('textarea');
+                textareaElement.className = 'text-answer long-answer';
+                textareaElement.placeholder = 'Type your detailed answer here...';
+                textareaElement.value = userAnswer || '';
+
+                if (quizSubmitted) {
+                    textareaElement.disabled = true;
+
+                    // Add model answer below
+                    const modelAnswer = document.createElement('div');
+                    modelAnswer.className = 'model-answer';
+                    modelAnswer.innerHTML = `<h4>Model Answer:</h4><p>${question.answer}</p>`;
+                    optionsContainer.appendChild(modelAnswer);
+                } else {
+                    textareaElement.addEventListener('input', () => {
+                        userAnswers[currentQuestionIndex] = textareaElement.value;
+                    });
+                }
+
+                optionsContainer.appendChild(textareaElement);
+            }
+
+            // Select an option for multiple choice
+            function selectOption(optionIndex) {
+                userAnswers[currentQuestionIndex] = optionIndex;
+
+                // Update UI
+                const options = optionsContainer.querySelectorAll('.option');
+                options.forEach((option, i) => {
+                    if (i === optionIndex) {
+                        option.classList.add('selected');
+                    } else {
+                        option.classList.remove('selected');
+                    }
+                });
+            }
+
+            // Show explanation for current question
+            function showExplanation(index) {
+                const question = questions[index];
+                if (question && question.explanation) {
+                    explanationContainer.style.display = 'block';
+                    explanationText.textContent = question.explanation;
+                } else {
+                    explanationContainer.style.display = 'none';
+                }
+            }
+
+            // Calculate score
+            function calculateScore() {
+                let score = 0;
+                questions.forEach((question, i) => {
+                    const userAnswer = userAnswers[i];
+
+                    // Skip if no answer
+                    if (userAnswer === null) return;
+
+                    // Check if correct based on question type
+                    if (Array.isArray(question.options)) {
+                        // Multiple choice
+                        if (question.options[userAnswer] === question.answer) {
+                            score++;
+                        }
+                    } else if (question.question.includes('_____')) {
+                        // Fill in the blanks
+                        const correctAnswers = Array.isArray(question.answer) ?
+                                              question.answer :
+                                              [question.answer];
+
+                        // Check if all blanks are correct
+                        const allCorrect = Array.isArray(userAnswer) &&
+                                          userAnswer.every((ans, idx) =>
+                                            ans.toLowerCase() === correctAnswers[idx].toLowerCase());
+
+                        if (allCorrect) {
+                            score++;
+                        }
+                    } else if (question.answer === 'True' || question.answer === 'False') {
+                        // True/False
+                        if (userAnswer === question.answer) {
+                            score++;
+                        }
+                    }
+                    // For short/long answers, no automatic scoring
+                });
+
+                return score;
+            }
+
+            // Submit the quiz
+            function submitQuiz() {
+                quizSubmitted = true;
+
+                // Calculate score for scorable questions
+                const score = calculateScore();
+                const scorableQuestions = questions.filter(q =>
+                    Array.isArray(q.options) ||
+                    q.question.includes('_____') ||
+                    q.answer === 'True' ||
+                    q.answer === 'False'
+                ).length;
+
+                // Show score
+                questionText.textContent = `Quiz Completed! Your Score: ${score}/${scorableQuestions}`;
+
+                // Clear options and show feedback
+                optionsContainer.innerHTML = '';
+                feedbackContainer.style.display = 'block';
+
+                // Disable submit button
+                submitBtn.disabled = true;
+
+                // Store results in localStorage
+                localStorage.setItem('quizResults', JSON.stringify({
+                    score,
+                    totalQuestions: scorableQuestions,
+                    userAnswers,
+                    quizData
+                }));
+            }
+
+            // Event listeners
+            prevBtn.addEventListener('click', () => {
+                if (currentQuestionIndex > 0) {
+                    showQuestion(currentQuestionIndex - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentQuestionIndex < questions.length - 1) {
+                    showQuestion(currentQuestionIndex + 1);
+                }
+            });
+
+            submitBtn.addEventListener('click', submitQuiz);
+
+            // Initialize the quiz
+            initQuiz();
+        });
+    </script>
+</body>
+</html>

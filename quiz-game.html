@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZERA - Quiz Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Full-screen iframe background */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .background-container iframe {
+            width: 100vw;
+            height: 100vh;
+            border: none;
+        }
+        
+        /* Make the body pass through pointer events to the background but allow scrolling */
+        body {
+            pointer-events: none;
+            overflow-y: auto !important;
+            height: auto !important;
+        }
+        
+        /* But enable pointer events for all interactive elements */
+        header, .game-container, button, input, select, .llm-option, .topic-input, .file-upload-area {
+            pointer-events: auto;
+        }
+        
+        /* Game container */
+        .game-container {
+            max-width: 900px;
+            margin: 120px auto 80px;
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        /* Game title */
+        .game-title {
+            font-family: 'Azonix', sans-serif;
+            font-size: 36px;
+            color: #1a2b3c;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .game-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 40px;
+        }
+        
+        /* LLM selection */
+        .llm-selection {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-family: 'Azonix', sans-serif;
+            font-size: 24px;
+            color: #1a2b3c;
+            margin-bottom: 20px;
+        }
+        
+        .llm-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .llm-option {
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(26, 43, 60, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .llm-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: rgba(26, 43, 60, 0.3);
+        }
+        
+        .llm-option.selected {
+            border-color: #1a2b3c;
+            background-color: rgba(26, 43, 60, 0.1);
+        }
+        
+        .llm-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+        }
+        
+        .llm-name {
+            font-family: 'Azonix', sans-serif;
+            font-size: 18px;
+            color: #1a2b3c;
+            margin-bottom: 10px;
+        }
+        
+        .llm-description {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        /* Quiz input options */
+        .quiz-input-options {
+            margin-bottom: 40px;
+        }
+        
+        .input-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(26, 43, 60, 0.1);
+        }
+        
+        .input-tab {
+            padding: 15px 30px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #555;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+        
+        .input-tab:hover {
+            color: #1a2b3c;
+        }
+        
+        .input-tab.active {
+            color: #1a2b3c;
+            border-bottom-color: #1a2b3c;
+        }
+        
+        .input-content {
+            display: none;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+        
+        .input-content.active {
+            display: block;
+        }
+        
+        /* Topic input */
+        .topic-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid rgba(26, 43, 60, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .topic-input:focus {
+            outline: none;
+            border-color: #1a2b3c;
+        }
+        
+        /* File upload area */
+        .file-upload-area {
+            border: 2px dashed rgba(26, 43, 60, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-color: #1a2b3c;
+        }
+        
+        .file-upload-icon {
+            font-size: 40px;
+            color: #1a2b3c;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-text {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload-btn {
+            background-color: rgba(26, 43, 60, 0.8);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-btn:hover {
+            background-color: #1a2b3c;
+            transform: translateY(-2px);
+        }
+        
+        .file-name {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #1a2b3c;
+            display: none;
+        }
+        
+        /* Quiz options */
+        .quiz-options {
+            margin-bottom: 40px;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .option-group {
+            margin-bottom: 20px;
+        }
+        
+        .option-label {
+            display: block;
+            font-family: 'Azonix', sans-serif;
+            font-size: 16px;
+            color: #1a2b3c;
+            margin-bottom: 10px;
+        }
+        
+        .option-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid rgba(26, 43, 60, 0.1);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .option-select:focus {
+            outline: none;
+            border-color: #1a2b3c;
+        }
+        
+        /* Start button */
+        .start-btn-container {
+            text-align: center;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #1a2b3c, #2a3b4c);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-family: 'Azonix', sans-serif;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Dark theme */
+        body.dark-theme .game-container {
+            background-color: rgba(20, 20, 30, 0.8);
+        }
+        
+        body.dark-theme .game-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .game-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        body.dark-theme .section-title {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .llm-option {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.2);
+        }
+        
+        body.dark-theme .llm-option:hover {
+            border-color: rgba(0, 204, 255, 0.4);
+        }
+        
+        body.dark-theme .llm-option.selected {
+            border-color: rgba(0, 204, 255, 0.8);
+            background-color: rgba(0, 204, 255, 0.1);
+        }
+        
+        body.dark-theme .llm-name {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .llm-description {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        body.dark-theme .input-tabs {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        body.dark-theme .input-tab {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        body.dark-theme .input-tab:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .input-tab.active {
+            color: rgba(0, 204, 255, 0.9);
+            border-bottom-color: rgba(0, 204, 255, 0.9);
+        }
+        
+        body.dark-theme .input-content {
+            background-color: rgba(30, 30, 40, 0.7);
+        }
+        
+        body.dark-theme .topic-input {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .topic-input:focus {
+            border-color: rgba(0, 204, 255, 0.8);
+        }
+        
+        body.dark-theme .file-upload-area {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.3);
+        }
+        
+        body.dark-theme .file-upload-area:hover {
+            background-color: rgba(40, 40, 50, 0.7);
+            border-color: rgba(0, 204, 255, 0.6);
+        }
+        
+        body.dark-theme .file-upload-icon {
+            color: rgba(0, 204, 255, 0.9);
+        }
+        
+        body.dark-theme .file-upload-text {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        body.dark-theme .file-upload-btn {
+            background-color: rgba(0, 204, 255, 0.7);
+        }
+        
+        body.dark-theme .file-upload-btn:hover {
+            background-color: rgba(0, 204, 255, 0.9);
+        }
+        
+        body.dark-theme .file-name {
+            color: rgba(0, 204, 255, 0.9);
+        }
+        
+        body.dark-theme .option-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .option-select {
+            background-color: rgba(30, 30, 40, 0.7);
+            border-color: rgba(0, 204, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        body.dark-theme .option-select:focus {
+            border-color: rgba(0, 204, 255, 0.8);
+        }
+        
+        body.dark-theme .start-btn {
+            background: linear-gradient(135deg, rgba(0, 204, 255, 0.7), rgba(0, 153, 204, 0.7));
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">QUIZERA</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="feature.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="upload.html">Upload</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Background iframe -->
+    <div class="background-container">
+        <iframe src="https://my.spline.design/backgroundhoverinteraction-rTMh3NLza6Ui5zO1GrsWb1sD/" frameborder="0" width="100%" height="100%" allow="autoplay; fullscreen; vr" loading="lazy"></iframe>
+    </div>
+    
+    <div class="game-container">
+        <h1 class="game-title">Quiz Game</h1>
+        <p class="game-subtitle">Create a custom quiz by selecting an AI model and providing a topic or PDF</p>
+        
+        <!-- LLM Selection Section -->
+        <div class="llm-selection">
+            <h2 class="section-title">Choose AI Model</h2>
+            <div class="llm-options">
+                <div class="llm-option" data-llm="gemini">
+                    <div class="llm-icon">🤖</div>
+                    <div class="llm-name">Gemini</div>
+                    <div class="llm-description">Google's advanced AI model with strong reasoning capabilities</div>
+                </div>
+                <div class="llm-option" data-llm="gpt">
+                    <div class="llm-icon">🧠</div>
+                    <div class="llm-name">GPT-4</div>
+                    <div class="llm-description">OpenAI's powerful model with broad knowledge</div>
+                </div>
+                <div class="llm-option" data-llm="claude">
+                    <div class="llm-icon">🔮</div>
+                    <div class="llm-name">Claude</div>
+                    <div class="llm-description">Anthropic's helpful and harmless AI assistant</div>
+                </div>
+                <div class="llm-option" data-llm="llama">
+                    <div class="llm-icon">🦙</div>
+                    <div class="llm-name">Llama</div>
+                    <div class="llm-description">Meta's open-source large language model</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quiz Input Options Section -->
+        <div class="quiz-input-options">
+            <h2 class="section-title">Quiz Content</h2>
+            <div class="input-tabs">
+                <div class="input-tab active" data-tab="topic">Enter Topic</div>
+                <div class="input-tab" data-tab="pdf">Upload PDF</div>
+            </div>
+            
+            <div class="input-content active" id="topic-content">
+                <input type="text" class="topic-input" placeholder="Enter a topic (e.g., World History, Quantum Physics, Machine Learning)">
+            </div>
+            
+            <div class="input-content" id="pdf-content">
+                <div class="file-upload-area">
+                    <div class="file-upload-icon">📄</div>
+                    <div class="file-upload-text">Drag & drop your PDF here or</div>
+                    <input type="file" id="pdf-file" accept=".pdf" style="display: none;">
+                    <button class="file-upload-btn" onclick="document.getElementById('pdf-file').click()">Browse Files</button>
+                    <div class="file-name" id="file-name"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quiz Options Section -->
+        <div class="quiz-options">
+            <h2 class="section-title">Quiz Settings</h2>
+            <div class="options-grid">
+                <div class="option-group">
+                    <label class="option-label">Question Type</label>
+                    <select class="option-select" id="question-type">
+                        <option value="multiple-choice">Multiple Choice</option>
+                        <option value="fill-blanks">Fill in the Blanks</option>
+                        <option value="true-false">True/False</option>
+                        <option value="short-answer">Short Answer</option>
+                        <option value="mixed">Mixed</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">Difficulty</label>
+                    <select class="option-select" id="difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">Number of Questions</label>
+                    <select class="option-select" id="num-questions">
+                        <option value="5">5 Questions</option>
+                        <option value="10">10 Questions</option>
+                        <option value="15">15 Questions</option>
+                        <option value="20">20 Questions</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label class="option-label">Time Limit</label>
+                    <select class="option-select" id="time-limit">
+                        <option value="none">No Limit</option>
+                        <option value="30">30 Seconds per Question</option>
+                        <option value="60">1 Minute per Question</option>
+                        <option value="120">2 Minutes per Question</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Start Button -->
+        <div class="start-btn-container">
+            <button class="start-btn" id="start-quiz-btn">Start Quiz</button>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+            
+            // LLM Selection
+            const llmOptions = document.querySelectorAll('.llm-option');
+            let selectedLLM = null;
+            
+            llmOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    llmOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Store selected LLM
+                    selectedLLM = this.getAttribute('data-llm');
+                });
+            });
+            
+            // Tab Switching
+            const inputTabs = document.querySelectorAll('.input-tab');
+            const inputContents = document.querySelectorAll('.input-content');
+            
+            inputTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and contents
+                    inputTabs.forEach(t => t.classList.remove('active'));
+                    inputContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + '-content').classList.add('active');
+                });
+            });
+            
+            // File Upload Handling
+            const pdfFileInput = document.getElementById('pdf-file');
+            const fileNameDisplay = document.getElementById('file-name');
+            
+            pdfFileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    fileNameDisplay.textContent = this.files[0].name;
+                    fileNameDisplay.style.display = 'block';
+                } else {
+                    fileNameDisplay.style.display = 'none';
+                }
+            });
+            
+            // Drag and Drop for PDF
+            const fileUploadArea = document.querySelector('.file-upload-area');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileUploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                fileUploadArea.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                fileUploadArea.classList.remove('highlight');
+            }
+            
+            fileUploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0 && files[0].type === 'application/pdf') {
+                    pdfFileInput.files = files;
+                    fileNameDisplay.textContent = files[0].name;
+                    fileNameDisplay.style.display = 'block';
+                }
+            }
+            
+            // Start Quiz Button
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            
+            startQuizBtn.addEventListener('click', function() {
+                // Validate inputs
+                if (!selectedLLM) {
+                    alert('Please select an AI model');
+                    return;
+                }
+                
+                const activeTab = document.querySelector('.input-tab.active').getAttribute('data-tab');
+                let quizContent = '';
+                let pdfFile = null;
+                
+                if (activeTab === 'topic') {
+                    quizContent = document.querySelector('.topic-input').value.trim();
+                    if (!quizContent) {
+                        alert('Please enter a topic');
+                        return;
+                    }
+                } else {
+                    pdfFile = pdfFileInput.files[0];
+                    if (!pdfFile) {
+                        alert('Please upload a PDF file');
+                        return;
+                    }
+                }
+                
+                // Get quiz settings
+                const questionType = document.getElementById('question-type').value;
+                const difficulty = document.getElementById('difficulty').value;
+                const numQuestions = document.getElementById('num-questions').value;
+                const timeLimit = document.getElementById('time-limit').value;
+                
+                // Store quiz settings in localStorage
+                const quizSettings = {
+                    llm: selectedLLM,
+                    contentType: activeTab,
+                    content: quizContent,
+                    questionType: questionType,
+                    difficulty: difficulty,
+                    numQuestions: numQuestions,
+                    timeLimit: timeLimit
+                };
+                
+                localStorage.setItem('quizSettings', JSON.stringify(quizSettings));
+                
+                // If PDF file is selected, upload it first
+                if (pdfFile) {
+                    // Create a FormData object to send the file
+                    const formData = new FormData();
+                    formData.append('pdf', pdfFile);
+                    
+                    // Show loading state
+                    startQuizBtn.textContent = 'Uploading PDF...';
+                    startQuizBtn.disabled = true;
+                    
+                    // Upload the file to the server
+                    fetch('http://localhost:5000/api/upload-pdf', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('PDF uploaded successfully:', data);
+                        
+                        // Store the PDF ID in localStorage
+                        localStorage.setItem('pdfId', data.pdf_id);
+                        
+                        // Redirect to the quiz page
+                        window.location.href = 'quiz-play.html';
+                    })
+                    .catch(error => {
+                        console.error('Error uploading PDF:', error);
+                        alert('Error uploading PDF. Please try again.');
+                        
+                        // Reset button
+                        startQuizBtn.textContent = 'Start Quiz';
+                        startQuizBtn.disabled = false;
+                    });
+                } else {
+                    // Redirect directly to the quiz page for topic-based quizzes
+                    window.location.href = 'quiz-play.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

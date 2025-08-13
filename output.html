@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QUIZERA - Interactive Quiz Output</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f8fa; margin: 0; padding: 30px; }
+    h1 { color: #2563eb; }
+    #quiz-output { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px #0001; margin-bottom: 20px; }
+    .question { margin-bottom: 18px; }
+    .option-btn {
+      display: block;
+      margin: 6px 0;
+      padding: 8px 14px;
+      border: 1px solid #2563eb;
+      border-radius: 5px;
+      background: #e8f0fe;
+      color: #222;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-size: 1em;
+    }
+    .option-btn.selected { background: #2563eb; color: #fff; }
+    .option-btn.correct { background: #27ae60; color: #fff; border-color: #27ae60; }
+    .option-btn.incorrect { background: #e63946; color: #fff; border-color: #e63946; }
+    #score-area { font-weight: bold; color: #2563eb; margin-bottom: 18px; }
+    #reload-btn { padding: 8px 18px; border-radius: 4px; border: none; background: #2563eb; color: #fff; font-size: 1em; cursor: pointer; }
+    #no-questions { color: #e63946; font-weight: bold; margin-bottom: 1em; }
+    #reupload-btn { background: #e63946; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; cursor: pointer; }
+  </style>
+  <style>
+    /* Enhanced Quiz UI */
+    body { display:flex; flex-direction:column; align-items:center; background:linear-gradient(135deg,#f6f8fa,#e0e7ff); }
+    #game-container { background:#fff; width:100%; max-width:600px; padding:24px; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.1); margin:24px 0; }
+    #start-screen, #quiz-area, #game-over { margin:16px 0; }
+    input, select { width:100%; padding:10px 14px; margin-bottom:12px; border:1px solid #cbd5e1; border-radius:6px; box-sizing:border-box; font-size:1em; }
+    button { padding:10px 16px; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition:background 0.2s ease; }
+    #start-btn { background:#2563eb; color:#fff; width:100%; font-size:1.1em; }
+    #start-btn:hover { background:#1d4ed8; }
+    .option-btn { background:#e8f0fe; color:#222; margin:8px 0; text-align:left; border:1px solid #2563eb; }
+    .option-btn:hover { background:#dbeafe; }
+    .option-btn.selected { background:#2563eb; color:#fff; }
+    .option-btn.correct { background:#27ae60; color:#fff; border-color:#27ae60; }
+    .option-btn.incorrect { background:#e63946; color:#fff; border-color:#e63946; }
+    #nav-btns button { margin:8px 8px; background:#2563eb; color:#fff; }
+    #nav-btns button:hover { background:#1d4ed8; }
+    #game-over { text-align:center; }
+    #game-over button { margin:8px; background:#10b981; color:#fff; }
+    #game-over button#view-leaderboard-btn { background:#2563eb; }
+    #game-over button#print-btn { background:#6b7280; }
+  </style>
+  <!-- Use Poppins font & modern UI styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #27ae60;
+      --danger: #e63946;
+      --bg-gradient: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a6c1ee);
+      --card-bg: #fff;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: 'Poppins', sans-serif; background: var(--bg-gradient); background-size:400% 400%; animation:gradientBG 15s ease infinite; display:flex; flex-direction:column; align-items:center; }
+    h1 { font-weight:500; margin-top:40px; color: var(--primary); }
+    #game-container { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); width:90%; max-width:700px; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.1); padding:30px; margin:20px 0; }
+    input, select { width:100%; padding:12px 16px; margin:12px 0; border:1px solid #cbd5e1; border-radius:8px; font-size:1em; }
+    button { cursor:pointer; border:none; border-radius:8px; padding:12px 20px; font-size:1em; transition: background 0.3s ease; }
+    #start-btn { background: var(--primary); color:#fff; width:100%; }
+    #start-btn:hover { background:#1d4ed8; }
+    .question { background:#fafafa; border:1px solid #e2e8f0; border-radius:8px; padding:20px; margin-bottom:20px; }
+    .option-btn { background:#fff; border:2px solid var(--primary); color:#222; padding:14px; margin:8px 0; border-radius:8px; text-align:left; }
+    .option-btn:hover { background:#ebf4ff; }
+    .option-btn.selected { background: var(--primary); color:#fff; border-color: var(--primary); }
+    .option-btn.correct { background: var(--secondary); color:#fff; border-color: var(--secondary); }
+    .option-btn.incorrect { background: var(--danger); color:#fff; border-color: var(--danger); }
+    #nav-btns { text-align:right; margin-top:20px; }
+    #nav-btns button { background: var(--primary); color:#fff; margin-left:8px; }
+    #nav-btns button:hover { background:#1d4ed8; }
+    #game-over { text-align:center; padding:20px 0; }
+    #game-over h2 { font-size:2em; margin-bottom:16px; }
+    #game-over button { margin:8px; background: var(--primary); color:#fff; }
+    #print-btn { background:#6b7280; }
+    #print-btn:hover { background:#4b5563; }
+    #score-area { font-size:1.1em; margin-bottom:20px; }
+    #progress-bar { position:relative; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:20px; }
+    #progress-bar .filled { height:100%; background: var(--primary); width:0; transition: width 0.3s; }
+    /* Gradient animation keyframes */
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</head>
+<body>
+  <h1>QUIZERA - Quiz Output</h1>
+  <div id="score-area"></div>
+  <div id="game-container">
+    <div id="start-screen">
+      <h2>Quiz Game</h2>
+      <p>Enter a topic for your quiz. The AI will generate questions for you!</p>
+      <input id="username-input" type="text" placeholder="Enter your name for leaderboard" style="width:60%;padding:8px;font-size:1em;max-width:290px;">
+      <input id="topic-input" type="text" placeholder="e.g. Solar System, Python, World War II" style="width:60%;padding:8px;font-size:1em;">
+      <div style="margin:10px 0;">
+        <label><b>Difficulty:</b></label>
+        <select id="difficulty-select" style="padding:6px;font-size:1em;">
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <button id="start-btn">Start Game</button>
+      <div id="topic-error" style="color:#e63946;margin-top:8px;"></div>
+    </div>
+    <div id="quiz-area" style="display:none;">
+      <div id="progress-bar"></div>
+      <div id="question-area"></div>
+      <div id="nav-btns"></div>
+    </div>
+    <div id="game-over" style="display:none;"></div>
+  </div>
+  <a href="#" id="quiz-game-icon" title="Quiz Game" style="position:fixed;bottom:24px;left:24px;z-index:20;display:block;width:42px;height:42px;">
+    <img src="images/gaming-icon.svg" alt="Quiz Game" style="width:100%;height:100%;filter:drop-shadow(0 2px 6px #0002);">
+  </a>
+  <div id="gameplay-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:36px 28px 28px 28px;border-radius:16px;max-width:420px;width:94vw;box-shadow:0 8px 32px #0003;position:relative;">
+      <button id="close-gameplay-modal" style="position:absolute;top:14px;right:18px;font-size:1.5em;background:none;border:none;cursor:pointer;color:#e63946;">&times;</button>
+      <h2 style="text-align:center;color:#2563eb;margin-bottom:18px;">Quiz Game Mode</h2>
+      <p style="text-align:center;color:#444;margin-bottom:18px;">Welcome to the Quiz Game!<br>Test your knowledge on any topic and compete for the leaderboard.<br>Click <b>Start Gameplay</b> below to begin.</p>
+      <div id="modal-leaderboard" style="margin:18px 0 18px 0;">
+        <h3 style="text-align:center;color:#27ae60;margin-bottom:8px;font-size:1.1em;">🏆 Top 5 Leaderboard</h3>
+        <table style="width:100%;font-size:0.97em;background:#f8fafd;border-radius:7px;overflow:hidden;">
+          <thead><tr style="background:#f0f3fa;"><th style="padding:4px 6px;">#</th><th>User</th><th>Score</th><th style="display:none;">Topic</th></tr></thead>
+          <tbody id="modal-leaderboard-body"><tr><td colspan="4" style="text-align:center;color:#aaa;">Loading...</td></tr></tbody>
+        </table>
+        <div style="text-align:center;margin-top:6px;"><a href="leaderboard.html" style="color:#2563eb;text-decoration:underline;font-size:0.98em;">View Full Leaderboard</a></div>
+      </div>
+      <button id="start-gameplay-btn" style="display:block;margin:0 auto 12px auto;padding:12px 28px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Play Game in New Tab</button>
+      <button id="start-single-btn" style="display:block;margin:0 auto 0 auto;padding:12px 28px;background:#10b981;color:#fff;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">Start Single-Player Quiz</button>
+      <!-- fallback link will be created dynamically if needed -->
+    </div>
+  </div>
+  <script src="output.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Play Game in New Tab
+      var playBtn = document.getElementById('start-gameplay-btn');
+      if (playBtn) {
+        playBtn.onclick = function(e) {
+          let fallback = document.getElementById('quiz-fallback-link');
+          if (fallback) fallback.remove();
+          const newTab = window.open('http://127.0.0.1:5000/quiz_game.html', '_blank');
+          if (newTab) {
+            newTab.focus();
+            document.getElementById('gameplay-modal').style.display = 'none';
+          } else {
+            alert('Pop-up was blocked! Please allow pop-ups for this site to play the quiz game.');
+            fallback = document.createElement('div');
+            fallback.id = 'quiz-fallback-link';
+            fallback.innerHTML = '<div style="margin-top:24px;text-align:center;background:#fffbe6;padding:14px 0;"><a href="http://127.0.0.1:5000/quiz_game.html" target="_blank" style="color:#d97706;font-weight:bold;font-size:1.2em;text-decoration:underline;">Click here to open the Quiz Game if nothing happened</a></div>';
+            fallback.style.display = 'block';
+            fallback.style.position = 'relative';
+            fallback.style.width = '100%';
+            document.getElementById('gameplay-modal').appendChild(fallback);
+          }
+        };
+      }
+      // Start Single-Player Quiz
+      var singleBtn = document.getElementById('start-single-btn');
+      if (singleBtn) {
+        singleBtn.onclick = function() {
+          document.getElementById('start-btn').click();
+        };
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUIZERA - MCQ Sheet</title>
+  <link rel="stylesheet" href="quiz-styles.css">
+  <style>
+    .mcq-sheet-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      padding: 36px 30px 30px 30px;
+    }
+    .mcq-sheet-container h1 {
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 2em;
+    }
+    .mcq-question {
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #eee;
+    }
+    .mcq-options label {
+      display: block;
+      margin: 8px 0;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .mcq-options input[type="radio"] {
+      margin-right: 10px;
+    }
+    .mcq-options label.correct {
+      background: #d4edda;
+      color: #155724;
+      font-weight: bold;
+    }
+    .mcq-options label.incorrect {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .mcq-result {
+      text-align: center;
+      font-size: 1.2em;
+      margin: 22px 0 10px 0;
+      font-weight: bold;
+    }
+    .mcq-explanation {
+      color: #555;
+      font-size: 0.98em;
+      margin-top: 4px;
+      margin-left: 12px;
+    }
+    .mcq-submit-btn {
+      display: block;
+      margin: 26px auto 0 auto;
+      padding: 12px 34px;
+      font-size: 1.1em;
+      background: #222;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .mcq-submit-btn:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+  <div class="mcq-sheet-container">
+    <h1>MCQ Sheet</h1>
+    <form id="mcq-form">
+      <div id="mcq-questions"></div>
+      <button type="submit" class="mcq-submit-btn">Submit Answers</button>
+      <button type="button" id="mcq-print-btn" style="margin-left:16px;">Print Sheet</button>
+    </form>
+    <div id="mcq-result"></div>
+  </div>
+  <script src="output-mcq.js"></script>
+</body>
+</html>
