@@ -8,7 +8,7 @@ Quizera is a full-stack quiz application built to provide a seamless learning ex
 
 Whether you're preparing for exams, practicing concepts, or just exploring topics, Quizera helps transform learning into an enjoyable experience.
 
-✨ Features:-\
+### ✨ Features:-
 
 🎯 AI-powered quiz generation\
 📚 Multiple quiz categories and topics\
@@ -27,10 +27,10 @@ JavaScript / TypeScript
 
 Backend:-\
 Node.js\
-Express.js\
+Express.js
 
 Database:-\
-MongoDB\
+MongoDB
 
 Other Tools & Libraries:-\
 REST APIs\
@@ -39,51 +39,56 @@ Axios\
 Vite
 
 ### 📂 Project Structure
-Quizera/
-│
-├── frontend/        # React frontend
-├── backend/         # Node.js + Express backend
-├── README.md
+Quizera/\
+│\
+├── frontend/        # React frontend\
+├── backend/         # Node.js + Express backend\
+├── README.md\
 └── package.json
-⚙️ Installation
-1️⃣ Clone the repository
-git clone https://github.com/Parthpachori/Quizera.git
+
+### ⚙️ Installation
+1️⃣ Clone the repository\
+git clone https://github.com/Parthpachori/Quizera.git\
 cd Quizera
-2️⃣ Install dependencies
-Frontend
-cd frontend
+
+2️⃣ Install dependencies\
+Frontend\
+cd frontend\
+npm install\
+Backend\
+cd backend\
 npm install
-Backend
-cd backend
-npm install
+
 3️⃣ Configure Environment Variables
 
 Create a .env file inside the backend folder.
 
 Example:
 
-PORT=5000
-MONGO_URI=your_mongodb_connection
-JWT_SECRET=your_secret_key
-OPENAI_API_KEY=your_api_key
-4️⃣ Run the application
-Start backend
-cd backend
-npm run dev
-Start frontend
-cd frontend
-npm run dev
-🚀 Usage
-Open the frontend application in your browser.
-Sign up or log in.
-Choose a topic or category.
-Generate or attempt quizzes.
-Track scores and improve learning interactively.
+PORT=5000\
+MONGO_URI=your_mongodb_connection\
+JWT_SECRET=your_secret_key\
+OPENAI_API_KEY=your_api_key\
 
-🔮 Future Improvements:-
-🏆 Leaderboard system
-👥 Multiplayer quiz battles
-📱 Mobile app support
-🎤 Voice-based quizzes
-🤖 Advanced AI personalization
+4️⃣ Run the application\
+Start backend\
+cd backend\
+npm run dev\
+Start frontend\
+cd frontend\
+npm run dev
+
+### 🚀 Usage
+Open the frontend application in your browser.\
+Sign up or log in.\
+Choose a topic or category.\
+Generate or attempt quizzes.\
+Track scores and improve learning interactively.\
+
+### 🔮 Future Improvements:-
+🏆 Leaderboard system\
+👥 Multiplayer quiz battles\
+📱 Mobile app support\
+🎤 Voice-based quizzes\
+🤖 Advanced AI personalization\
 📈 Analytics dashboard
