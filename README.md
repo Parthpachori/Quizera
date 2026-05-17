@@ -9,6 +9,7 @@ Quizera is a full-stack quiz application built to provide a seamless learning ex
 Whether you're preparing for exams, practicing concepts, or just exploring topics, Quizera helps transform learning into an enjoyable experience.
 
 ✨ Features:-\
+
 🎯 AI-powered quiz generation\
 📚 Multiple quiz categories and topics\
 ⚡ Fast and responsive user interface\
@@ -18,24 +19,26 @@ Whether you're preparing for exams, practicing concepts, or just exploring topic
 🔐 User authentication & authorization\
 🌙 Modern UI with responsive design
 
-### 🛠️ Tech Stack\
+### 🛠️ Tech Stack
 Frontend:-\
 React.js\
 Tailwind CSS\
 JavaScript / TypeScript
 
-Backend
-Node.js
-Express.js
-Database
-MongoDB
-Other Tools & Libraries
-REST APIs
-JWT Authentication
-Axios
+Backend:-\
+Node.js\
+Express.js\
+
+Database:-\
+MongoDB\
+
+Other Tools & Libraries:-\
+REST APIs\
+JWT Authentication\
+Axios\
 Vite
 
-📂 Project Structure
+### 📂 Project Structure
 Quizera/
 │
 ├── frontend/        # React frontend
