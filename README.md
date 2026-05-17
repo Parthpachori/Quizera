@@ -1,4 +1,4 @@
-#QUIZERA 🚀
+/QUIZERA 🚀
 
 An interactive AI-powered quiz platform designed to make learning engaging, personalized, and fun. Quizera allows users to generate quizzes dynamically, attempt challenges, and improve knowledge through an intuitive and modern interface.
 
